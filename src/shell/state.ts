@@ -34,3 +34,19 @@ export function createPersistentState(): PersistentState {
     runsCompleted: 0,
   };
 }
+
+export interface JournalEntry {
+  month: number;
+  kind: 'clue' | 'event' | 'decree';
+  refId: string;
+  townId?: string;
+  fromTownId?: string;
+}
+
+export interface RunJournal {
+  entries: JournalEntry[];
+}
+
+export function createJournal(): RunJournal {
+  return { entries: [] };
+}

@@ -1,6 +1,6 @@
 import type { SerializedRun } from '../engine/serialize';
 import type { KVStore } from './persistence';
-import type { PersistentState } from './state';
+import { createJournal, type PersistentState, type RunJournal } from './state';
 
 export const SAVE_SCHEMA = 1;
 export const SAVE_KEY = 'tgm.save.v1';
@@ -12,6 +12,7 @@ export interface SaveDocument {
   savedAt: string;
   persistent: PersistentState;
   run: SerializedRun | null;
+  journal: RunJournal;
 }
 
 export class SaveStore {
@@ -34,13 +35,18 @@ export class SaveStore {
       ) {
         return null;
       }
+      if (!doc.journal || !Array.isArray(doc.journal.entries)) doc.journal = createJournal();
       return doc;
     } catch {
       return null;
     }
   }
 
-  async save(persistent: PersistentState, run: SerializedRun | null): Promise<void> {
+  async save(
+    persistent: PersistentState,
+    run: SerializedRun | null,
+    journal: RunJournal = createJournal(),
+  ): Promise<void> {
     const doc: SaveDocument = {
       schema: SAVE_SCHEMA,
       app: 'the-great-mortality',
@@ -48,6 +54,7 @@ export class SaveStore {
       savedAt: new Date().toISOString(),
       persistent,
       run,
+      journal,
     };
     try {
       await this.store.set(SAVE_KEY, JSON.stringify(doc));

@@ -64,14 +64,35 @@ test('SaveStore round-trips a save document', async () => {
 
   const persistent = createPersistentState();
   persistent.cluesFound.push('c-galleys');
-  await saves.save(persistent, null);
+  await saves.save(persistent, null, {
+    entries: [{ month: 2, kind: 'clue', refId: 'c-galleys', townId: 'collina' }],
+  });
 
   const doc = await saves.load();
   expect(doc).not.toBeNull();
   expect(doc!.specVersion).toBe('1.0.0');
   expect(doc!.persistent.cluesFound).toEqual(['c-galleys']);
   expect(doc!.run).toBeNull();
+  expect(doc!.journal.entries).toHaveLength(1);
   expect(typeof doc!.savedAt).toBe('string');
+});
+
+test('a save without a journal loads with an empty journal', async () => {
+  const store = createMemoryStore();
+  const saves = new SaveStore(store, '1.0.0');
+  await store.set(
+    SAVE_KEY,
+    JSON.stringify({
+      schema: 1,
+      app: 'the-great-mortality',
+      specVersion: '1.0.0',
+      savedAt: 'x',
+      persistent: createPersistentState(),
+      run: null,
+    }),
+  );
+  const doc = await saves.load();
+  expect(doc!.journal.entries).toEqual([]);
 });
 
 test('SaveStore returns null for missing, corrupt or foreign data', async () => {
