@@ -380,6 +380,26 @@
       "word": "the council whispers"
     }
   ],
+  "monthFlavors": [
+    "Epiphany",
+    "Candlemas",
+    "Annunciation",
+    "The spring sowing",
+    "Calendimaggio",
+    "Midsummer",
+    "The hay harvest",
+    "Assumption",
+    "The harvest",
+    "The vintage",
+    "All Saints",
+    "Christmastide"
+  ],
+  "quietReportLines": [
+    "The month turned without word from the roads.",
+    "Markets opened and bells rang, for ordinary reasons.",
+    "Nothing came to the ledger but weather and work.",
+    "The towns kept their own counsel this month."
+  ],
   "advisors": [
     {
       "id": "physician",
