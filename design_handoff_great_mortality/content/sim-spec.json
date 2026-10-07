@@ -1,0 +1,1450 @@
+{
+  "meta": {
+    "id": "black-death-1347",
+    "title": "The Great Mortality",
+    "version": "1.0.0",
+    "archetype": "network-spread",
+    "curriculum": "Tennessee Grade 7 Social Studies, Middle Ages in Western Europe (7.27–7.39); links back to East Asia / Mongols (7.01–7.11)",
+    "markup": "Inline Codex terms use [[term-id]] or [[term-id|display text]]. Rendering one marks the term as seen. {town}, {steward}, {month} are placeholders.",
+    "historicalBenchmark": {
+      "survival": 0.6,
+      "label": "~60% survived",
+      "caption": "about 4 in 10 died across Europe"
+    }
+  },
+  "sim": {
+    "months": 18,
+    "startCalendarMonth": 10,
+    "ticksPerMonth": 4,
+    "decreesPerMonth": 2,
+    "portTown": "portoreale",
+    "isolatedTown": "fontenera",
+    "season": [
+      0.25,
+      0.35,
+      0.6,
+      0.8,
+      1.0,
+      1.1,
+      1.1,
+      1.1,
+      1.0,
+      0.85,
+      0.7,
+      0.35
+    ],
+    "ratDensity": {
+      "port": 1.2,
+      "market": 1.0,
+      "monastery": 1.3,
+      "village": 0.8,
+      "hill-village": 0.7
+    },
+    "rats": {
+      "beta": 2.0,
+      "deathRate": 0.5,
+      "visibleDieOff": 0.03
+    },
+    "humans": {
+      "ratFleaForce": 1.05,
+      "humanFleaForce": 0.35,
+      "pneumonicForce": 0.75,
+      "pneumonicShare": 0.01,
+      "pneumonicShareWinter": 0.04,
+      "bubonicFatality": 0.6,
+      "coughingVisible": 3
+    },
+    "monasteryCrowding": 1.5,
+    "ships": {
+      "earlyMonths": 6,
+      "infectedEarly": 0.8,
+      "infectedLate": 0.4,
+      "heldLeak": 0.08,
+      "ratSeed": 0.01,
+      "sickSailors": 4,
+      "grainShipShare": 0.3
+    },
+    "overland": {
+      "fromMonth": 3,
+      "entryTown": "santa-lucia",
+      "monthlyChance": 0.15,
+      "ratSeed": 0.005,
+      "people": 2
+    },
+    "roads": {
+      "seedChance": 0.8,
+      "peopleWeight": 3,
+      "ratSeed": 0.004
+    },
+    "events": {
+      "ragmanChance": 0.25
+    },
+    "isolatedClue": {
+      "fromMonth": 4,
+      "minInfectedTowns": 3
+    },
+    "winterLull": {
+      "minPeak": 50,
+      "drop": 0.3
+    },
+    "economy": {
+      "startTreasury": 3000,
+      "tithePerPerson": 0.04,
+      "sealedTitheShare": 0.5,
+      "tollsOpen": 500,
+      "tollsHeld": 200
+    },
+    "unrest": {
+      "start": 10,
+      "decayPerMonth": 4,
+      "perDeathRate": 1.2,
+      "portClosedPerMonth": 8,
+      "shipsHeldPerMonth": 2,
+      "sealedPerTownPerMonth": 3,
+      "deathCapPerMonth": 15
+    },
+    "decreeEffects": {
+      "hold-ships": {
+        "unrestOnIssue": 3
+      },
+      "close-port": {
+        "unrestOnIssue": 6
+      },
+      "seal-roads": {
+        "unrestOnIssue": 3
+      },
+      "clean-streets": {
+        "ratKill": 0.85,
+        "ongoing": 0.9,
+        "unrestOnIssue": 0
+      },
+      "burn-herbs": {
+        "unrestOnIssue": -2
+      },
+      "hire-physicians": {
+        "unrestOnIssue": -5
+      },
+      "procession": {
+        "crowdMultiplier": 1.8,
+        "unrestOnIssue": -8
+      },
+      "close-bathhouses": {
+        "unrestOnIssue": 4
+      }
+    },
+    "assist": {
+      "afterStewardships": 3,
+      "deadRatsDieOff": 0.005,
+      "deadRatsMaxBuriedShare": 0.01,
+      "coughingVisible": 0.5,
+      "ragmanChance": 0.6
+    }
+  },
+  "towns": [
+    {
+      "id": "portoreale",
+      "name": "Portoreale",
+      "type": "port",
+      "pop": 12000,
+      "founded": 1091,
+      "label": "Port"
+    },
+    {
+      "id": "santa-lucia",
+      "name": "Santa Lucia",
+      "type": "market",
+      "pop": 8000,
+      "founded": 1034,
+      "label": "Market town"
+    },
+    {
+      "id": "san-benedetto",
+      "name": "San Benedetto",
+      "type": "monastery",
+      "pop": 300,
+      "founded": 1120,
+      "label": "Monastery"
+    },
+    {
+      "id": "collina",
+      "name": "Collina",
+      "type": "village",
+      "pop": 1500,
+      "founded": 1150,
+      "label": "Village"
+    },
+    {
+      "id": "pietrabianca",
+      "name": "Pietrabianca",
+      "type": "village",
+      "pop": 1200,
+      "founded": 1162,
+      "label": "Village"
+    },
+    {
+      "id": "fontenera",
+      "name": "Fontenera",
+      "type": "hill-village",
+      "pop": 600,
+      "founded": 1201,
+      "label": "Hill village"
+    }
+  ],
+  "routes": [
+    {
+      "id": "road-portoreale-santalucia",
+      "a": "portoreale",
+      "b": "santa-lucia",
+      "trade": 0.9,
+      "kind": "road"
+    },
+    {
+      "id": "road-santalucia-sanbenedetto",
+      "a": "santa-lucia",
+      "b": "san-benedetto",
+      "trade": 0.4,
+      "kind": "road"
+    },
+    {
+      "id": "road-santalucia-collina",
+      "a": "santa-lucia",
+      "b": "collina",
+      "trade": 0.6,
+      "kind": "road"
+    },
+    {
+      "id": "road-santalucia-pietrabianca",
+      "a": "santa-lucia",
+      "b": "pietrabianca",
+      "trade": 0.6,
+      "kind": "road"
+    },
+    {
+      "id": "road-portoreale-pietrabianca",
+      "a": "portoreale",
+      "b": "pietrabianca",
+      "trade": 0.5,
+      "kind": "road"
+    },
+    {
+      "id": "footpath-collina-fontenera",
+      "a": "collina",
+      "b": "fontenera",
+      "trade": 0.03,
+      "kind": "footpath"
+    }
+  ],
+  "decrees": [
+    {
+      "id": "hold-ships",
+      "name": "Hold ships offshore forty days",
+      "description": "Let no galley touch the quay till the moon turns.",
+      "cost": 400,
+      "target": "port",
+      "kind": "toggle",
+      "truth": "Works. Blocks most infected ships (8% leak). Lowers port tolls. Unrest +3 on issue, +2/month."
+    },
+    {
+      "id": "close-port",
+      "name": "Close the port",
+      "description": "Chain the harbor. The merchants will howl.",
+      "cost": 900,
+      "target": "port",
+      "kind": "toggle",
+      "truth": "Works best against the sea route. No tolls. Unrest +6 on issue, +8/month (hunger)."
+    },
+    {
+      "id": "seal-roads",
+      "name": "Seal a town's roads",
+      "description": "Set guards on every road. None in, none out.",
+      "cost": 600,
+      "target": "town",
+      "kind": "toggle",
+      "truth": "Works. Closes every road and footpath touching the town. Halves its tithes. Unrest +3 on issue, +3/month per sealed town."
+    },
+    {
+      "id": "clean-streets",
+      "name": "Clean the streets and granaries",
+      "description": "Sweep the filth and burn the spoiled grain.",
+      "cost": 300,
+      "target": "town",
+      "kind": "one-time",
+      "truth": "Helps, for the wrong reason: fewer rats near people. Kills 15% of the town's rats and dampens rat spread 10% for the rest of the run."
+    },
+    {
+      "id": "burn-herbs",
+      "name": "Burn herbs to cleanse the air",
+      "description": "Rosemary and juniper against the foul vapors.",
+      "cost": 150,
+      "target": "town",
+      "kind": "instant",
+      "truth": "Does nothing to the plague. Unrest -2. Can trigger the herb-fires clue."
+    },
+    {
+      "id": "hire-physicians",
+      "name": "Hire physicians",
+      "description": "Learned men of Salerno, with vinegar and lancets.",
+      "cost": 500,
+      "target": "town",
+      "kind": "instant",
+      "truth": "Does nothing to deaths. Unrest -5. First use earns the beaked-mask card."
+    },
+    {
+      "id": "procession",
+      "name": "Hold a procession",
+      "description": "Carry the relics through the streets and pray.",
+      "cost": 100,
+      "target": "town",
+      "kind": "instant",
+      "truth": "Backfires. Unrest -8, but crowds multiply person-to-person spread (x1.8) in that town for the month."
+    },
+    {
+      "id": "close-bathhouses",
+      "name": "Close the bathhouses",
+      "description": "Open pores let the sickness in, the doctors say.",
+      "cost": 200,
+      "target": "region",
+      "kind": "toggle",
+      "truth": "Does nothing. Unrest +4. Earns the bathing card."
+    },
+    {
+      "id": "flee",
+      "name": "Flee to the countryside",
+      "description": "Ends your stewardship. Asks you twice.",
+      "cost": 0,
+      "target": "region",
+      "kind": "ends-run",
+      "truth": "Ends the run as 'the Fled'. Remaining months auto-play with all toggles left as they were."
+    }
+  ],
+  "unlockOnDecree": {
+    "hire-physicians": [
+      "card:beaked-mask"
+    ],
+    "close-bathhouses": [
+      "card:bathing"
+    ]
+  },
+  "opening": {
+    "label": "Messina · October 1347",
+    "narration": [
+      "Twelve galleys from the Black Sea.",
+      "Half the crews are dead at their oars.",
+      "The harbor master will not let them land.",
+      "By morning, they have landed anyway.",
+      "Driven from Messina, the galleys row north along the coast. Toward your port."
+    ],
+    "titleCard": {
+      "kicker": "The Great Mortality",
+      "title": "Something is killing your people. Find out what.",
+      "body": "You are the [[steward]] of six towns on the Italian coast. Choose your name."
+    },
+    "namePool": [
+      "Lorenzo",
+      "Matteo",
+      "Giovanni",
+      "Isabella",
+      "Beatrice",
+      "Caterina",
+      "Francesco",
+      "Niccolò",
+      "Chiara",
+      "Tommaso",
+      "Agnese",
+      "Bartolomeo",
+      "Lucia",
+      "Pietro",
+      "Giovanna",
+      "Ugolino"
+    ]
+  },
+  "unrestBands": [
+    {
+      "min": 0,
+      "max": 24,
+      "word": "quiet streets"
+    },
+    {
+      "min": 25,
+      "max": 49,
+      "word": "grumbling at the quay"
+    },
+    {
+      "min": 50,
+      "max": 74,
+      "word": "stones thrown at the palazzo"
+    },
+    {
+      "min": 75,
+      "max": 99,
+      "word": "the council whispers"
+    }
+  ],
+  "advisors": [
+    {
+      "id": "physician",
+      "name": "The Physician",
+      "stance": "miasma",
+      "theories": [
+        "q1-air",
+        "q2-air",
+        "q3-vapors"
+      ],
+      "offers": [
+        "burn-herbs",
+        "close-bathhouses"
+      ],
+      "lines": {
+        "early": [
+          "The air itself has turned. Foul [[miasma]] rises from the marshes and the earth's cracks. Burn sweet herbs and we may yet clean it.",
+          "Your blood is a balance of four [[humors]]. Keep it cool and calm, avoid hot baths that open the skin, and the poison finds no door."
+        ],
+        "spreading": [
+          "I have read Galen and Avicenna on this. Bad air settles in low, damp places. Keep the windows shut against the south wind."
+        ],
+        "winter": [
+          "The cold air is cleaner. You see? The deaths are fewer. The vapors sink in winter."
+        ]
+      }
+    },
+    {
+      "id": "priest",
+      "name": "The Priest",
+      "stance": "divine judgment",
+      "theories": [
+        "q1-judgment",
+        "q2-judgment",
+        "q4-mercy"
+      ],
+      "offers": [
+        "procession"
+      ],
+      "lines": {
+        "early": [
+          "Many believe this sickness is a judgment for our sins. Let the people gather and pray together. They need hope as much as bread."
+        ],
+        "spreading": [
+          "I have buried more in a week than in all my years before. Let us carry the relics through the streets, so no one feels abandoned.",
+          "In the north, bands of [[flagellants]] march from town to town, whipping themselves in penance. His Holiness does not approve of them. I pray we never see them here."
+        ],
+        "winter": [
+          "The deaths have slowed. Perhaps heaven has heard us. I will keep praying, and so should you."
+        ]
+      }
+    },
+    {
+      "id": "astrologer",
+      "name": "The Astrologer",
+      "stance": "the 1345 conjunction",
+      "theories": [
+        "q1-planets",
+        "q2-planets",
+        "q4-planets"
+      ],
+      "offers": [
+        "burn-herbs"
+      ],
+      "lines": {
+        "early": [
+          "In March of 1345, Saturn, Jupiter and Mars met in Aquarius. The great doctors of Paris say that [[conjunction]] poisoned the air. We are living under its shadow."
+        ],
+        "spreading": [
+          "The stars move slowly, my lord. What they set in motion will run its course. Burn herbs at the hour of Venus; it is the best we can do."
+        ],
+        "winter": [
+          "See how the planets drift apart in winter. Their poison weakens."
+        ]
+      }
+    },
+    {
+      "id": "merchant",
+      "name": "The Merchant",
+      "stance": "keep the port open",
+      "theories": [],
+      "offers": [
+        "lift:hold-ships",
+        "lift:close-port"
+      ],
+      "lines": {
+        "early": [
+          "Every day the galleys sit at anchor, we lose a thousand [[florin|florins]]. The city lives on that harbor, my lord.",
+          "Sicily is a long way off. Sickness in Messina is no reason to starve Portoreale."
+        ],
+        "spreading": [
+          "People are hungry. Grain rots in the holds out there. Open the harbor before the city opens it for you."
+        ],
+        "winter": [
+          "Trade is slow in winter anyway. If you must hold the ships, now is cheapest. But spring will come."
+        ]
+      }
+    }
+  ],
+  "mystery": {
+    "questions": [
+      {
+        "id": "q1",
+        "numeral": "I",
+        "text": "Where does it come from?",
+        "theories": [
+          {
+            "id": "q1-air",
+            "text": "From foul air rising from swamps and earthquakes",
+            "advisor": "physician"
+          },
+          {
+            "id": "q1-planets",
+            "text": "From the planets' meeting in 1345",
+            "advisor": "astrologer"
+          },
+          {
+            "id": "q1-judgment",
+            "text": "From heaven, as a judgment",
+            "advisor": "priest",
+            "religious": true
+          },
+          {
+            "id": "q1-east",
+            "text": "From the East, by sea, on the galleys from Caffa",
+            "correct": true
+          }
+        ],
+        "solveRule": {
+          "all": [
+            "c-galleys"
+          ],
+          "anyOf": [
+            "c-quarantined-galley",
+            "c-no-road"
+          ],
+          "need": 1
+        },
+        "notYetHint": "You know where the galleys came from. Now prove the sickness came with them.",
+        "solvedSummary": "It came from the East along the trade routes, and reached Italy on Genoese galleys from [[caffa|Caffa]]."
+      },
+      {
+        "id": "q2",
+        "numeral": "II",
+        "text": "How does it travel?",
+        "theories": [
+          {
+            "id": "q2-air",
+            "text": "Through corrupted air",
+            "advisor": "physician"
+          },
+          {
+            "id": "q2-goods",
+            "text": "With people and their goods",
+            "correct": true
+          },
+          {
+            "id": "q2-judgment",
+            "text": "As a judgment, wherever it wills",
+            "advisor": "priest",
+            "religious": true
+          },
+          {
+            "id": "q2-planets",
+            "text": "From the planets' alignment",
+            "advisor": "astrologer"
+          }
+        ],
+        "solveRule": {
+          "anyOf": [
+            "c-quarantined-galley",
+            "c-no-road",
+            "c-ragman",
+            "c-grain-ship"
+          ],
+          "need": 2
+        },
+        "notYetHint": "One clue points this way. Find a second.",
+        "solvedSummary": "It travels with people and their goods: ships, carts, cloth and grain. Stop the movement and you slow the sickness."
+      },
+      {
+        "id": "q3",
+        "numeral": "III",
+        "text": "What carries it to people?",
+        "theories": [
+          {
+            "id": "q3-vapors",
+            "text": "Breathing foul vapors",
+            "advisor": "physician"
+          },
+          {
+            "id": "q3-gaze",
+            "text": "The gaze of the sick"
+          },
+          {
+            "id": "q3-food",
+            "text": "Spoiled food and drink"
+          },
+          {
+            "id": "q3-fleas",
+            "text": "Something tiny that lives on rats, and on people",
+            "correct": true
+          }
+        ],
+        "solveRule": {
+          "all": [
+            "c-dead-rats"
+          ],
+          "anyOf": [
+            "c-ragman",
+            "c-grain-ship"
+          ],
+          "need": 1
+        },
+        "notYetHint": "Watch the [[granary|granaries]]. Something dies there before people do.",
+        "solvedSummary": "Fleas. They live on rats, and probably on people too. When the rats die, the fleas look for new hosts."
+      },
+      {
+        "id": "q4",
+        "numeral": "IV",
+        "text": "Why does it slow down in winter, but not always?",
+        "theories": [
+          {
+            "id": "q4-mercy",
+            "text": "Heaven shows mercy in the cold",
+            "advisor": "priest",
+            "religious": true
+          },
+          {
+            "id": "q4-cold-air",
+            "text": "Cold air is clean air, so winter is always safe",
+            "advisor": "physician"
+          },
+          {
+            "id": "q4-planets",
+            "text": "The planets drift apart in winter",
+            "advisor": "astrologer"
+          },
+          {
+            "id": "q4-carriers",
+            "text": "Cold slows its tiny carriers, but a lung form spreads by coughing",
+            "correct": true
+          }
+        ],
+        "solveRule": {
+          "all": [
+            "c-winter-lull",
+            "c-coughing"
+          ],
+          "anyOf": [],
+          "need": 0
+        },
+        "notYetHint": "You have seen half the pattern. Watch a winter closely.",
+        "solvedSummary": "Fleas slow down in the cold, so [[bubonic-plague|bubonic plague]] eases in winter. But [[pneumonic-plague|pneumonic plague]] lives in the lungs and spreads by coughing, cold or not."
+      }
+    ],
+    "verdicts": {
+      "solved": {
+        "stamp": "Solved",
+        "button": "Pin it to the board"
+      },
+      "notYet": {
+        "stamp": "Not yet",
+        "text": "You may be right, but an investigator needs more proof.",
+        "button": "Keep looking"
+      },
+      "wrong": {
+        "stamp": "The clues say no",
+        "text": "Look at this clue again:",
+        "religiousText": "Many people believed this sincerely. Your evidence shows how it spread:",
+        "noClueText": "None of your clues supports this yet. Keep watching the months.",
+        "button": "Back to the board"
+      }
+    },
+    "clues": [
+      {
+        "id": "c-galleys",
+        "title": "Galleys from the East",
+        "text": "The sick crews came from [[caffa|Caffa]] on the Black Sea.",
+        "questions": [
+          "q1"
+        ],
+        "for": [
+          "q1-east"
+        ],
+        "against": [],
+        "trigger": "Always found during the opening."
+      },
+      {
+        "id": "c-quarantined-galley",
+        "title": "The quarantined galley",
+        "text": "The crew died aboard at anchor, and the town stayed healthy. The [[quarantine]] held.",
+        "questions": [
+          "q1",
+          "q2"
+        ],
+        "for": [
+          "q1-east",
+          "q2-goods"
+        ],
+        "against": [
+          "q1-judgment",
+          "q2-judgment",
+          "q2-air"
+        ],
+        "trigger": "An infected ship arrives while ships are held, and the port has no new cases that month.",
+        "reportText": "A galley held at anchor flew the black flag. By month's end its crew were dead aboard. Portoreale had no new sick."
+      },
+      {
+        "id": "c-no-road",
+        "title": "The village with no road",
+        "text": "Fontenera is untouched, under the same sky and the same air.",
+        "questions": [
+          "q1",
+          "q2"
+        ],
+        "for": [
+          "q2-goods"
+        ],
+        "against": [
+          "q1-air",
+          "q1-planets",
+          "q2-air",
+          "q2-planets"
+        ],
+        "trigger": "Month 5 or later, Fontenera has no burials, and at least 3 towns do.",
+        "reportText": "Fontenera, reached only by a goat path, has buried no one. The same wind blows there."
+      },
+      {
+        "id": "c-herb-fires",
+        "title": "The herb fires failed",
+        "text": "Rosemary and juniper burned for a month in {town}. The sick kept coming.",
+        "questions": [
+          "q1",
+          "q2",
+          "q3"
+        ],
+        "for": [],
+        "against": [
+          "q1-air",
+          "q2-air",
+          "q3-vapors"
+        ],
+        "trigger": "Herbs were burned in a town, and its new cases next month were no lower.",
+        "reportText": "The herb fires in {town} burned all month. The sick did not slow."
+      },
+      {
+        "id": "c-dead-rats",
+        "title": "Dead rats in the granary",
+        "text": "In {town}, the rats died first. People fell sick after.",
+        "questions": [
+          "q3"
+        ],
+        "for": [
+          "q3-fleas"
+        ],
+        "against": [
+          "q3-vapors",
+          "q3-gaze"
+        ],
+        "trigger": "A town's rats die off visibly before its first burial.",
+        "reportText": "The keeper of the [[granary]] in {town} swept out dead rats by the basket. No one is sick there. Yet."
+      },
+      {
+        "id": "c-ragman",
+        "title": "The ragman's cart",
+        "text": "Clothes from a dead household were sold in {town}. The sickness followed the cart.",
+        "questions": [
+          "q2",
+          "q3"
+        ],
+        "for": [
+          "q2-goods",
+          "q3-fleas"
+        ],
+        "against": [
+          "q2-air",
+          "q3-gaze",
+          "q3-food"
+        ],
+        "trigger": "Ragman event moves cloth from a ravaged town to a healthy neighbor, and an outbreak follows within 2 months.",
+        "reportText": "A ragman sold the bedding of the dead in {town}. Within weeks, {town} was burying its own."
+      },
+      {
+        "id": "c-grain-ship",
+        "title": "The grain ship",
+        "text": "Not one sailor aboard was sick. But after its sacks were unloaded, the sickness came to {town}.",
+        "questions": [
+          "q2",
+          "q3"
+        ],
+        "for": [
+          "q2-goods",
+          "q3-fleas"
+        ],
+        "against": [
+          "q2-air",
+          "q3-gaze",
+          "q3-vapors"
+        ],
+        "trigger": "A grain ship with a healthy crew docks at an open port, and an outbreak follows within 2 months.",
+        "reportText": "A grain ship unloaded at the quay with a healthy crew. Weeks later, the sickness was in {town}."
+      },
+      {
+        "id": "c-winter-lull",
+        "title": "The winter lull",
+        "text": "In the coldest months, the swollen-gland sickness slowed.",
+        "questions": [
+          "q4"
+        ],
+        "for": [
+          "q4-carriers"
+        ],
+        "against": [],
+        "trigger": "In Dec–Feb, regional new cases fall at least 30% below the autumn peak (peak must exceed 50).",
+        "reportText": "The frost came, and the bell for the dead rang less often."
+      },
+      {
+        "id": "c-coughing",
+        "title": "The coughing sickness",
+        "text": "In winter, a form that spat blood spread fast in {town}, from person to person.",
+        "questions": [
+          "q4"
+        ],
+        "for": [
+          "q4-carriers"
+        ],
+        "against": [
+          "q4-cold-air",
+          "q4-mercy",
+          "q4-planets",
+          "q3-food"
+        ],
+        "trigger": "In Dec–Feb, a town has more than 3 people sick with the pneumonic form in a week.",
+        "reportText": "In {town}, a new and quicker form: the sick cough blood and die in two days. Those who nurse them follow."
+      }
+    ],
+    "lensReveal": {
+      "kicker": "All four questions solved",
+      "title": "The Physician's Lens",
+      "body": "You have found what no one in 1348 could see. Now look at your region as it truly was.",
+      "chips": [
+        "Rat colonies",
+        "Flea spread",
+        "Bubonic vs. pneumonic",
+        "New chronicle: Yersin & Simond"
+      ],
+      "button": "Look through the Lens",
+      "footnote": "The Lens stays unsealed in every game from now on.",
+      "legend": [
+        {
+          "id": "rats",
+          "title": "Rat colonies",
+          "text": "Every town had rats. When plague swept through them, they died, and their fleas went looking for new hosts."
+        },
+        {
+          "id": "fleas",
+          "title": "Flea spread",
+          "text": "Fleas rode in grain sacks, cloth and clothing, on rats and on people. That is how the sickness traveled with goods."
+        },
+        {
+          "id": "pneumonic",
+          "title": "Bubonic vs. pneumonic",
+          "text": "Bubonic plague came from flea bites and slowed in the cold. Pneumonic plague infected the lungs and spread by coughing, in any weather."
+        },
+        {
+          "id": "spared",
+          "title": "Why Fontenera was spared",
+          "text": "No road, little trade, few strangers. Isolation protected it, not cleaner air."
+        }
+      ]
+    }
+  },
+  "codex": [
+    {
+      "id": "steward",
+      "term": "Steward",
+      "pos": "noun",
+      "meaning": "The person who runs a region on behalf of its lord: collecting taxes, keeping order, giving commands. That's you.",
+      "why": "In 1348, decisions like yours were made by real stewards, councils and lords, with no idea what was really killing people."
+    },
+    {
+      "id": "galley",
+      "term": "Galley",
+      "pos": "noun",
+      "meaning": "A long, narrow ship moved by oars and sails. Italian merchants used galleys to carry goods across the Mediterranean and Black Sea.",
+      "why": "Galleys were fast and carried rats, fleas and sick sailors from port to port. They brought the plague to Italy."
+    },
+    {
+      "id": "pestilence",
+      "term": "Pestilence",
+      "pos": "noun",
+      "meaning": "A deadly disease that spreads widely. In 1348, people mostly called the plague 'the pestilence' or 'the great mortality.'",
+      "why": "The name 'Black Death' came centuries later. Knowing what people called it helps you read the real sources.",
+      "then": "A punishment, a poison in the air, or both.",
+      "now": "An old word for any widespread deadly disease."
+    },
+    {
+      "id": "miasma",
+      "term": "Miasma",
+      "pos": "noun",
+      "meaning": "Bad air. Doctors believed disease came from foul vapors rising from swamps, rotting things, or cracks in the earth.",
+      "why": "Many decrees in this game are based on miasma. Watch which ones actually help.",
+      "then": "The leading medical explanation for plague.",
+      "now": "Wrong. Most diseases come from germs: bacteria and viruses. Bad smells aren't the cause."
+    },
+    {
+      "id": "quarantine",
+      "term": "Quarantine",
+      "pos": "noun · from the Italian quaranta, forty",
+      "meaning": "Keeping ships, goods or people apart from everyone else for a set time, to see whether sickness shows itself before they come in.",
+      "why": "Your \"hold ships offshore\" decree is this idea, thirty years before anyone wrote it into law.",
+      "then": "Ragusa held arrivals thirty days on an island; Venice later made it forty.",
+      "now": "Still used. The length is set by how long a disease takes to show, not by the number forty."
+    },
+    {
+      "id": "bubonic-plague",
+      "term": "Bubonic plague",
+      "pos": "noun",
+      "meaning": "The most common form of the Black Death. It caused painful swellings called buboes in the neck, armpits and groin. It spread mainly through flea bites.",
+      "why": "Because fleas slow down in cold weather, bubonic plague eased in winter. That's a clue.",
+      "then": "Doctors thought buboes were poison collecting in the body.",
+      "now": "Buboes are swollen lymph nodes fighting the infection. Antibiotics cure it if given early."
+    },
+    {
+      "id": "pneumonic-plague",
+      "term": "Pneumonic plague",
+      "pos": "noun",
+      "meaning": "A form of plague in the lungs. The sick coughed, and the coughing spread it directly to the people around them.",
+      "why": "It didn't need fleas, so cold weather didn't stop it. It was even deadlier than bubonic plague."
+    },
+    {
+      "id": "scapegoat",
+      "term": "Scapegoat",
+      "pos": "noun",
+      "meaning": "Someone blamed for something they did not do, often because people are afraid and want someone to blame.",
+      "why": "During the plague, Jewish communities were falsely blamed and attacked. Learning the word helps you spot the pattern, then and now."
+    },
+    {
+      "id": "granary",
+      "term": "Granary",
+      "pos": "noun",
+      "meaning": "A building where a town stored its grain for the year.",
+      "why": "Grain attracts rats. Granaries are where people first saw rats dying, though no one understood what it meant."
+    },
+    {
+      "id": "conjunction",
+      "term": "Conjunction",
+      "pos": "noun",
+      "meaning": "When planets appear close together in the sky. Saturn, Jupiter and Mars had a conjunction in March 1345.",
+      "why": "The top doctors in Paris officially blamed the plague on this conjunction in 1348. It shows that even experts can be confidently wrong.",
+      "then": "Planets could poison the air on Earth.",
+      "now": "Planets have no effect on disease. A conjunction is just a line-of-sight coincidence."
+    },
+    {
+      "id": "pope-clement-vi",
+      "term": "Pope Clement VI",
+      "pos": "name",
+      "meaning": "The pope from 1342 to 1352, who lived in Avignon, France, during the Black Death.",
+      "why": "In 1348 he declared that Jews were not to blame and ordered them protected. He also condemned the flagellants."
+    },
+    {
+      "id": "yersinia-pestis",
+      "term": "Yersinia pestis",
+      "pos": "name · a bacterium",
+      "meaning": "The tiny bacterium that causes plague. It was discovered in 1894 and named after Alexandre Yersin.",
+      "why": "It's the real answer to the mystery that no one in 1348 could solve."
+    },
+    {
+      "id": "caffa",
+      "term": "Caffa",
+      "pos": "place",
+      "meaning": "A trading city on the Crimean coast of the Black Sea, run by merchants from Genoa. Today it's called Feodosia.",
+      "why": "The plague broke out there during a Mongol siege in 1346, and galleys fleeing Caffa carried it toward Italy."
+    },
+    {
+      "id": "genoa",
+      "term": "Genoa",
+      "pos": "place",
+      "meaning": "A powerful Italian city-state and sea-trading power, with trading posts all the way to the Black Sea.",
+      "why": "Genoese ships linked Italy to the trade routes from Asia, and that is how the plague arrived."
+    },
+    {
+      "id": "silk-road",
+      "term": "Silk Road",
+      "pos": "place · a network of routes",
+      "meaning": "Trade routes across Asia linking China to the Black Sea and Mediterranean. Silk, spices, ideas and religions traveled along them.",
+      "why": "Disease traveled the same roads. The more connected the world, the faster a sickness could spread."
+    },
+    {
+      "id": "mongol-empire",
+      "term": "Mongol Empire",
+      "pos": "name",
+      "meaning": "The huge empire founded by Genghis Khan in the 1200s, stretching from China to Eastern Europe.",
+      "why": "By connecting so much of Asia, the Mongols made trade easier. That connection also helped the plague move west. You may have studied them in your East Asia unit."
+    },
+    {
+      "id": "humors",
+      "term": "The four humors",
+      "pos": "noun",
+      "meaning": "The ancient belief that the body had four fluids: blood, phlegm, yellow bile and black bile. Health meant keeping them in balance.",
+      "why": "Medieval doctors treated plague by bleeding patients and changing diets to rebalance the humors. It didn't work.",
+      "then": "Illness came from unbalanced humors.",
+      "now": "Wrong, though it shaped medicine for almost 2,000 years."
+    },
+    {
+      "id": "lazaretto",
+      "term": "Lazaretto",
+      "pos": "noun",
+      "meaning": "A quarantine hospital, often on an island, where travelers and sick people were kept apart from a city.",
+      "why": "Venice built the first permanent one in 1423. It turned quarantine from an emergency order into something a city planned for.",
+      "then": "An island where ships' crews waited out forty days.",
+      "now": "Modern quarantine stations exist at airports and borders."
+    },
+    {
+      "id": "flagellants",
+      "term": "Flagellants",
+      "pos": "noun",
+      "meaning": "Groups who marched from town to town whipping themselves, believing their suffering would make God end the plague.",
+      "why": "Their marches drew crowds and spread fear. Pope Clement VI condemned them in 1349."
+    },
+    {
+      "id": "serf",
+      "term": "Serf",
+      "pos": "noun",
+      "meaning": "A peasant bound to a lord's land. Serfs farmed the land and owed the lord work and payments, and couldn't simply leave.",
+      "why": "After the plague killed so many workers, surviving serfs had new power to demand better treatment."
+    },
+    {
+      "id": "feudalism",
+      "term": "Feudalism",
+      "pos": "noun",
+      "meaning": "The system of medieval Europe where lords held land, peasants worked it, and everyone owed duties to someone above them.",
+      "why": "Feudalism depended on lots of cheap labor. The plague took that away, and the system began to break down."
+    },
+    {
+      "id": "epidemic",
+      "term": "Epidemic",
+      "pos": "noun",
+      "meaning": "A disease spreading quickly to many people in one area at the same time.",
+      "why": "Each town in your region has its own epidemic. Together, across a continent, they become something bigger."
+    },
+    {
+      "id": "pandemic",
+      "term": "Pandemic",
+      "pos": "noun",
+      "meaning": "An epidemic that spreads across several countries or continents.",
+      "why": "The Black Death was one of the deadliest pandemics in human history.",
+      "then": "No word for it. People only knew the sickness was everywhere.",
+      "now": "Public health systems track pandemics around the world."
+    },
+    {
+      "id": "florin",
+      "term": "Florin",
+      "pos": "noun",
+      "meaning": "A gold coin first minted in Florence in 1252. It was trusted across Europe, a bit like the dollar today.",
+      "why": "Your treasury is counted in florins. Every decree has a cost, just as real ones did."
+    }
+  ],
+  "chronicles": [
+    {
+      "id": "ships-from-caffa",
+      "title": "Ships from Caffa",
+      "dates": "1346–47",
+      "pinYear": 1346,
+      "unlock": "opening",
+      "body": "No one in 1347 knew where the sickness began. Today, scientists who study ancient DNA and old gravestones think it started in Central Asia in the late 1330s. From there it moved along the trade routes that the [[mongol-empire|Mongol Empire]] had joined together, the same [[silk-road|Silk Road]] that carried silk, spices and ideas between China and Europe.\n\nIn 1346 a Mongol army besieged [[caffa|Caffa]], a trading city on the Black Sea run by merchants from [[genoa|Genoa]]. The sickness broke out among the soldiers, then inside the walls. A famous story says the attackers threw bodies over the walls. Historians aren't sure it happened, and rats could easily have carried the sickness in.\n\nGenoese [[galley|galleys]] sailed for home and took the sickness with them. In October 1347 they reached Messina, in Sicily. Within a year it was everywhere in Italy.",
+      "remember": [
+        "The plague traveled along trade routes from Central Asia to Europe.",
+        "Genoese ships brought it to Sicily in October 1347.",
+        "The routes that spread goods and ideas also spread disease."
+      ],
+      "quiz": [
+        {
+          "q": "How did the plague reach Italy?",
+          "options": [
+            "On Genoese trading ships",
+            "On the wind over the Alps",
+            "It began in Italy",
+            "With a Mongol army that invaded Italy"
+          ],
+          "answer": 0,
+          "explain": "Galleys fleeing Caffa carried it to Messina in 1347."
+        },
+        {
+          "q": "Why did the Mongol Empire matter to the plague's spread?",
+          "options": [
+            "The Mongols invented quarantine",
+            "Its trade routes connected Asia and Europe",
+            "The Mongols were immune",
+            "It closed all trade with Europe"
+          ],
+          "answer": 1,
+          "explain": "A connected world moved goods quickly, and disease with them."
+        }
+      ]
+    },
+    {
+      "id": "fear-and-blame",
+      "title": "Fear and Blame",
+      "dates": "1348",
+      "pinYear": 1348,
+      "unlock": "event:fear-and-blame",
+      "body": "When the sickness came and no one could say why, people looked for someone to blame. In towns across Europe, frightened neighbors accused Jewish families of poisoning the wells. It was false. Jewish families drank from the same wells and died of the same sickness. But fear does not wait for proof.\n\nIn many places the accusations led to terrible violence. In some, leaders refused to allow it. In 1348 [[pope-clement-vi|Pope Clement VI]] declared the accusations false and ordered that Jewish people be protected, pointing out that the plague struck places with no Jewish community at all.\n\nIn your region, the steward stood at the gate. The record says simply: no one was harmed.",
+      "remember": [
+        "A [[scapegoat]] is someone blamed for a thing they did not do.",
+        "Fear plus ignorance is dangerous. Evidence is the cure for both.",
+        "Some leaders protected people. Leadership is a choice."
+      ],
+      "quiz": [
+        {
+          "q": "What is a scapegoat?",
+          "options": [
+            "A person who caused a problem",
+            "Someone blamed for something they didn't do",
+            "A kind of medieval doctor",
+            "A goat used in religious ceremonies today"
+          ],
+          "answer": 1,
+          "explain": "Scapegoats are blamed unfairly, often because people are afraid."
+        },
+        {
+          "q": "What evidence did Pope Clement VI point to?",
+          "options": [
+            "Jewish communities caught the plague less",
+            "The plague struck places with no Jewish community at all",
+            "The wells had been tested",
+            "The planets proved it"
+          ],
+          "answer": 1,
+          "explain": "If the plague came where no Jewish people lived, they couldn't be the cause. He also noted that Jewish families died of it too."
+        }
+      ]
+    },
+    {
+      "id": "great-mortality",
+      "title": "The Great Mortality",
+      "dates": "1348–51",
+      "pinYear": 1351,
+      "unlock": "run-end",
+      "body": "Between 1347 and 1351 the [[pestilence]] swept across Europe, from Italy to England, Scandinavia and the edge of Russia. Historians estimate it killed between a third and half of Europe's people, perhaps 25 to 50 million. Crowded cities suffered most. Florence may have lost more than half its people. In Siena, work stopped on a giant new cathedral, and its unfinished walls still stand.\n\nThen came the surprising part. With so many dead, there weren't enough workers. Surviving [[serf|serfs]] and laborers could demand higher wages or leave for towns that paid more. Lords tried to stop them. England passed the Statute of Labourers in 1351 to freeze wages. But the old [[feudalism|feudal]] order had begun to crack.\n\nThe plague did not leave for good. It returned every ten or twenty years for three centuries. It was not one [[epidemic]] but a [[pandemic]] that kept coming back.",
+      "remember": [
+        "The Black Death killed roughly a third to half of Europe's people between 1347 and 1351.",
+        "The worker shortage gave peasants more power and weakened feudalism.",
+        "The plague returned again and again for about 300 years."
+      ],
+      "quiz": [
+        {
+          "q": "About how much of Europe's population died?",
+          "options": [
+            "About 1 in 100",
+            "About 1 in 10",
+            "Between a third and a half",
+            "Nearly everyone"
+          ],
+          "answer": 2,
+          "explain": "Estimates range from about 30% to 50%, more in some cities."
+        },
+        {
+          "q": "Why did the plague weaken feudalism?",
+          "options": [
+            "Lords caught it more often",
+            "With fewer workers, peasants could demand better pay and freedom",
+            "The king abolished feudalism in 1348",
+            "Serfs moved to Asia"
+          ],
+          "answer": 1,
+          "explain": "Labor became scarce and valuable, so the old system of bound serfs began to break down."
+        }
+      ]
+    },
+    {
+      "id": "forty-days",
+      "title": "Forty Days",
+      "dates": "1377",
+      "pinYear": 1377,
+      "unlock": "clue:c-quarantined-galley",
+      "body": "On 27 July 1377, the city of Ragusa, today's Dubrovnik in Croatia, passed a new law. Anyone arriving from a place with plague had to wait thirty days on a nearby island or in a nearby town before entering the city. It's the oldest known [[quarantine]] law, and the document still survives.\n\nOther cities copied the idea, and the waiting time grew to forty days: quaranta giorni in Italian. That's where our word comes from. Why forty? No one knows for sure. Forty was an important number in religion and in old medical writings about illness.\n\nIn 1423 Venice built the first permanent [[lazaretto]], a quarantine hospital on an island in its lagoon.\n\nNotice what quarantine did not need: no one had to know about germs. People only had to notice that the sickness arrived with travelers. That's exactly what you've been investigating.",
+      "remember": [
+        "Ragusa wrote the first known quarantine law in 1377.",
+        "'Quarantine' comes from the Italian for forty days.",
+        "It worked by careful observation, long before anyone understood germs."
+      ],
+      "quiz": [
+        {
+          "q": "Where does the word 'quarantine' come from?",
+          "options": [
+            "A Latin word for 'sickness'",
+            "The Italian for 'forty days'",
+            "The name of a Venetian doctor",
+            "An island near Ragusa"
+          ],
+          "answer": 1,
+          "explain": "Quaranta giorni means forty days."
+        },
+        {
+          "q": "How could quarantine work before anyone knew about germs?",
+          "options": [
+            "It didn't work at all",
+            "People observed that sickness arrived with travelers",
+            "Doctors could see bacteria",
+            "The planets showed when to use it"
+          ],
+          "answer": 1,
+          "explain": "Observation and evidence were enough, even without the full explanation."
+        }
+      ]
+    },
+    {
+      "id": "the-answer",
+      "title": "The Answer: Yersin and Simond",
+      "dates": "1894–98",
+      "pinYear": 1894,
+      "unlock": "lens",
+      "body": "For more than 500 years, no one knew what caused the plague. Then in 1894 a new outbreak reached Hong Kong, and two scientists raced to find the cause: Alexandre Yersin of the Pasteur Institute in Paris, and Kitasato Shibasaburō of Japan. Yersin found a tiny bacterium in the swollen glands of victims. It was later named [[yersinia-pestis|Yersinia pestis]] in his honor.\n\nIn 1898, Paul-Louis Simond showed how it reached people. When infected rats died, their fleas jumped to new hosts, including humans.\n\nIn 2011, scientists found the bacterium's DNA in the teeth of people buried in a London plague cemetery from 1348 and 1349. That proved this was the cause of the Black Death. Some researchers now think fleas and lice on people spread it between humans too.\n\nToday plague still exists, but antibiotics can cure it if it's treated quickly.",
+      "remember": [
+        "The bacterium Yersinia pestis causes plague.",
+        "Fleas carried it from rats to people, and probably between people too.",
+        "DNA from 1348 graves confirmed it caused the Black Death."
+      ],
+      "quiz": [
+        {
+          "q": "What causes plague?",
+          "options": [
+            "Bad air",
+            "A bacterium carried by fleas",
+            "A planetary conjunction",
+            "Spoiled food"
+          ],
+          "answer": 1,
+          "explain": "Yersinia pestis, spread mostly by flea bites, and by coughing in the pneumonic form."
+        },
+        {
+          "q": "How did scientists confirm what caused the Black Death?",
+          "options": [
+            "They read Boccaccio",
+            "They found the bacterium's DNA in skeletons from 1348–49",
+            "They asked the astrologers",
+            "They guessed"
+          ],
+          "answer": 1,
+          "explain": "Ancient DNA from plague cemeteries gave direct proof."
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "start": 1346,
+    "end": 1898,
+    "note": "the sickness returns every ten or twenty years for three centuries",
+    "pins": [
+      "ships-from-caffa",
+      "fear-and-blame",
+      "great-mortality",
+      "forty-days",
+      "the-answer"
+    ]
+  },
+  "cards": [
+    {
+      "id": "beaked-mask",
+      "numeral": "I",
+      "myth": "Plague doctors wore beaked masks in 1348",
+      "verdict": "busted",
+      "story": "The famous bird-beaked costume dates from the 1600s, almost 300 years after the Black Death. In 1348, doctors wore ordinary robes.",
+      "howWeKnow": "The earliest descriptions and prints of the costume are from the 1600s. Nothing like it appears in images from the 1300s.",
+      "earn": "decree:hire-physicians",
+      "caption": "Earned in {month}, for hiring physicians."
+    },
+    {
+      "id": "black-death-name",
+      "numeral": "II",
+      "myth": "People called it \"the Black Death\"",
+      "verdict": "busted",
+      "story": "People in 1348 called it the great mortality, the great pestilence, or simply the plague. 'Black Death' came into wide use centuries later.",
+      "howWeKnow": "Writers from the 1340s, like Boccaccio, never use the name. It became popular in English in the 1800s.",
+      "earn": "run-end:first",
+      "caption": "Earned at the end of your first stewardship."
+    },
+    {
+      "id": "ring-around",
+      "numeral": "III",
+      "myth": "\"Ring Around the Rosie\" is about the plague",
+      "verdict": "busted",
+      "story": "It's a fun story, but folklorists say no. The rhyme wasn't printed until 1881, and the plague explanation only appeared in the 1900s. Older versions don't even have the sneezing or falling down.",
+      "howWeKnow": "Folklorists traced the printed versions and found no plague link before the 20th century.",
+      "earn": "town-burned-out:first",
+      "caption": "Earned in {month}, when {town} buried its last."
+    },
+    {
+      "id": "bathing",
+      "numeral": "IV",
+      "myth": "Medieval people never bathed",
+      "verdict": "busted",
+      "story": "Medieval towns had public bathhouses, and many people used them. During the plague some closed, because doctors feared that warm water opened the skin's pores to bad air.",
+      "howWeKnow": "Town records list bathhouses and their rules, and plague advice from doctors warns against hot baths.",
+      "earn": "decree:close-bathhouses",
+      "caption": "Earned in {month}, for closing the bathhouses."
+    },
+    {
+      "id": "rats",
+      "numeral": "V",
+      "myth": "Rats spread the Black Death",
+      "verdict": "partly-true",
+      "story": "Rats mattered: their fleas carried the bacterium. But some scientists now think human fleas and body lice spread much of it from person to person, and the lung form spread by coughing. Scientists still debate how much each mattered.",
+      "howWeKnow": "A 2018 study compared death patterns in nine European cities and found person-to-person spread fit better than rats alone.",
+      "earn": "solved:q3",
+      "caption": "Earned for solving Question III."
+    },
+    {
+      "id": "gods-punishment",
+      "numeral": "VI",
+      "myth": "Everyone blamed God's punishment",
+      "verdict": "busted",
+      "story": "Many people did. But in 1348 the top doctors of Paris officially blamed a planetary conjunction from 1345. Others blamed bad air, earthquakes, or falsely blamed their neighbors.",
+      "howWeKnow": "The Paris doctors' written report to the King of France survives.",
+      "earn": "advisor:astrologer:first",
+      "caption": "Earned in {month}, when the astrologer first spoke."
+    },
+    {
+      "id": "quarantine-modern",
+      "numeral": "VII",
+      "myth": "Quarantine is a modern idea",
+      "verdict": "busted",
+      "story": "The first quarantine law was written in Ragusa (today's Dubrovnik) in 1377. Ships waited thirty days on a nearby island. Venice stretched it to forty: quaranta giorni.",
+      "howWeKnow": "The law survives in Ragusa's city archive, dated 27 July 1377.",
+      "earn": "clue:c-quarantined-galley",
+      "caption": "Earned in {month}, for holding a galley forty days."
+    },
+    {
+      "id": "plague-extinct",
+      "numeral": "VIII",
+      "myth": "The plague is extinct",
+      "verdict": "busted",
+      "story": "Plague still lives in wild rodents and their fleas on several continents, including the western United States. A few people catch it each year, but antibiotics cure it if treated early.",
+      "howWeKnow": "Health agencies like the CDC track every case. The U.S. averages about seven a year.",
+      "earn": "lens",
+      "caption": "Earned for unsealing the Physician's Lens."
+    }
+  ],
+  "epithets": {
+    "order": [
+      "the-fled",
+      "the-overthrown",
+      "the-iron-gate",
+      "the-merchant-prince",
+      "the-devout",
+      "the-wise",
+      "the-steady",
+      "the-unlucky"
+    ],
+    "list": [
+      {
+        "id": "the-wise",
+        "name": "the Wise",
+        "rule": "Survival >= 75% and at least 6 town-months of quarantine (ships held + port closed + roads sealed)",
+        "citation": "who {actions}, and so was hated for a season and thanked for a lifetime."
+      },
+      {
+        "id": "the-iron-gate",
+        "name": "the Iron Gate",
+        "rule": "Port closed 12 or more of 18 months",
+        "citation": "who chained the harbor and kept it chained, though the city went hungry."
+      },
+      {
+        "id": "the-merchant-prince",
+        "name": "the Merchant Prince",
+        "rule": "Port never held or closed, treasury ended above its start, and survival >= 60%",
+        "citation": "who kept the harbor open and the florins flowing, and gambled, and won."
+      },
+      {
+        "id": "the-devout",
+        "name": "the Devout",
+        "rule": "4 or more processions",
+        "citation": "who {actions}, and never let the people pray alone."
+      },
+      {
+        "id": "the-steady",
+        "name": "the Steady",
+        "rule": "Unrest never above 50 and survival >= 60% (also the fallback when survival >= 60%)",
+        "citation": "who {actions}, and kept the peace when all around was fear."
+      },
+      {
+        "id": "the-unlucky",
+        "name": "the Unlucky",
+        "rule": "Survival < 60% (fallback)",
+        "citation": "who {actions}, and still the bells did not stop."
+      },
+      {
+        "id": "the-fled",
+        "name": "the Fled",
+        "rule": "Chose Flee",
+        "citation": "who left for the hills before dawn, as many did."
+      },
+      {
+        "id": "the-overthrown",
+        "name": "the Overthrown",
+        "rule": "Unrest reached 100",
+        "citation": "who could not hold the city's trust, and lost it."
+      }
+    ],
+    "actionPhrases": {
+      "shipsHeld": "held the ships at sea",
+      "portClosed": "chained the harbor",
+      "sealed": "sealed the roads",
+      "clean": "swept the granaries",
+      "processions": "carried the relics through the streets",
+      "physicians": "paid the learned doctors",
+      "herbs": "burned rosemary in the squares",
+      "none": "watched and waited"
+    },
+    "actionPhraseRule": "Use the two most-used actions this run (by months active or count), joined with 'and'. If none, use 'none'."
+  },
+  "scriptedEvents": [
+    {
+      "id": "fear-and-blame",
+      "fromMonth": 6,
+      "untilMonth": 12,
+      "requiresTownInfected": "santa-lucia",
+      "unrest": 3,
+      "place": "Santa Lucia",
+      "title": "A crowd at the well",
+      "paragraphs": [
+        "Word reaches you before dawn. A crowd has gathered at the old well in the lower town. They say the water has been poisoned. They say they know who did it: their Jewish neighbors, the dyers and the bookbinder's family on the Via dei Tintori.",
+        "It is not true. The Via dei Tintori drinks from the same well, and buries its dead in the same month as everyone else. But fear does not wait for proof."
+      ],
+      "stewardAction": "You go yourself, with the guard. You stand at the gate of the Via dei Tintori until the crowd goes home. No one is harmed. In the morning you post a decree: whoever harms a neighbor over this answers to the steward.",
+      "footer": "Unrest rises a little. A chronicle has been added: Fear and Blame. A word has been added to your Codex: [[scapegoat]].",
+      "button": "Read the chronicle"
+    }
+  ],
+  "reportLines": {
+    "held-ship-leak": "A galley slipped its anchor in the night and tied up at the quay before the guard could stop it.",
+    "overland-arrival": "Travelers on the inland road reached Santa Lucia, coughing and feverish.",
+    "ragman": "A ragman's cart left {from} for {to}, loaded with the bedding of the dead.",
+    "income": "Treasury took {income} [[florin|florins]] in tolls and tithes.",
+    "unrestUp": "Unrest rose {n}.",
+    "unrestDown": "Unrest fell {n}."
+  },
+  "endings": {
+    "normal": {
+      "kicker": "The stewardship of {steward} · November 1347 – April 1349",
+      "title": "The reckoning",
+      "benchmarkLabel": "What history saw",
+      "benchmarkValue": "~60% survived",
+      "benchmarkCaption": "about 4 in 10 died across Europe"
+    },
+    "overthrown": {
+      "title": "{steward} the Overthrown",
+      "body": "The council met without you. By evening the guard had changed sides, and by morning there was a new steward. The sickness did not notice.",
+      "footnote": "What you learned stays learned. The Evidence Board remembers."
+    },
+    "fled": {
+      "title": "{steward} the Fled",
+      "body": "You left for the hills before dawn with your household and what the mules could carry. Boccaccio's ten young Florentines did the same, and told a hundred stories over ten days. The towns went on without you.",
+      "footnote": "A new chronicle has opened: The Great Mortality."
+    }
+  },
+  "epithetRules": {
+    "ironGateMonths": 12,
+    "devoutProcessions": 4,
+    "wiseSurvival": 0.75,
+    "wiseMinQuarantineMonths": 6,
+    "steadyMaxUnrest": 50,
+    "benchmarkSurvival": 0.6,
+    "unluckyMinEffective": 2
+  }
+}
