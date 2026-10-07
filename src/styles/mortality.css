@@ -1,0 +1,224 @@
+:root {
+  --frame-color: #3a2a1c;
+  --ledger-ink: #4a2f1d;
+  --map-ink: #4a2f1d;
+  --map-dropcap: #8b2e2e;
+  --late-opacity: 0;
+  --roads-inner-opacity: 0;
+}
+
+.app,
+body {
+  transition: background-color var(--motion-crossfade) ease;
+}
+
+.leaf-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 70% 30%,
+    #d9c69b 0%,
+    #a08a5e 50%,
+    #5a4630 85%,
+    #3a2a1c 100%
+  );
+  opacity: var(--late-opacity, 0);
+  transition: opacity var(--motion-crossfade) ease;
+  pointer-events: none;
+}
+
+.leaf-ledger::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#c9b68e, #e3d2ad);
+  opacity: var(--late-opacity, 0);
+  transition: opacity var(--motion-crossfade) ease;
+  pointer-events: none;
+}
+
+.map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#coast,
+#coast-inner,
+#sea-lane,
+#roads,
+#footpath,
+#hills {
+  stroke: var(--map-ink);
+}
+
+#sea-label,
+#season-label {
+  fill: var(--map-ink);
+}
+
+#compass {
+  stroke: var(--map-ink);
+}
+
+#compass path {
+  fill: var(--map-ink);
+}
+
+#layer-season {
+  stroke: var(--map-ink);
+}
+
+#layer-towns {
+  color: var(--map-ink);
+}
+
+#layer-towns .name,
+#layer-towns .status {
+  fill: var(--map-ink);
+}
+
+#roads-inner {
+  stroke: #d9c69b;
+  opacity: var(--roads-inner-opacity, 0);
+  transition: opacity var(--motion-crossfade) ease;
+}
+
+#coast,
+#coast-inner,
+#sea-lane,
+#roads,
+#footpath,
+#hills,
+#sea-label,
+#season-label,
+#compass,
+#compass path,
+#layer-season,
+#layer-towns,
+#layer-towns .name,
+#layer-towns .status {
+  transition: stroke var(--motion-crossfade) ease, fill var(--motion-crossfade) ease,
+    color var(--motion-crossfade) ease, opacity var(--motion-crossfade) ease;
+}
+
+#layer-towns > g[data-state='healthy'] .ring {
+  opacity: 0;
+}
+
+#layer-towns > g[data-state='rumors'] .ring {
+  opacity: 1;
+}
+
+#layer-towns > g[data-state='spreading'] .ring {
+  opacity: 1;
+  stroke-dasharray: 8 6;
+  stroke-width: 2.5;
+  fill: #c9b48a;
+}
+
+#layer-towns > g[data-state='ravaged'] .ring,
+#layer-towns > g[data-state='burned'] .ring {
+  opacity: 1;
+  stroke-dasharray: none;
+  stroke-width: 3;
+  fill: none;
+}
+
+#layer-towns > g[data-state='ravaged'] .wash,
+#layer-towns > g[data-state='burned'] .wash {
+  opacity: 1;
+}
+
+#layer-towns > g[data-state='ravaged'] .disc {
+  fill: #2a1c10;
+  stroke: #f1e6cf;
+}
+
+#layer-towns > g[data-state='burned'] .disc {
+  fill: #6b5a40;
+  stroke: #f1e6cf;
+}
+
+#layer-towns > g[data-state='ravaged'],
+#layer-towns > g[data-state='burned'] {
+  color: #f1e6cf;
+}
+
+#layer-towns > g[data-state='ravaged'] .name,
+#layer-towns > g[data-state='ravaged'] .status,
+#layer-towns > g[data-state='burned'] .name,
+#layer-towns > g[data-state='burned'] .status {
+  fill: #f1e6cf;
+}
+
+.shutters {
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+
+.shutters rect {
+  fill: #1f150c;
+}
+
+#layer-towns > g[data-state='burned'] .shutters {
+  opacity: 0.8;
+}
+
+#layer-towns > g.pulse .ring {
+  animation: town-pulse 1.4s ease-in-out infinite;
+  opacity: 1;
+}
+
+@keyframes town-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #layer-towns > g.pulse .ring {
+    animation: none;
+    opacity: 1;
+    stroke: var(--gold);
+  }
+}
+
+.map-svg.town-focus #layer-base,
+.map-svg.town-focus #layer-routes {
+  opacity: 0.55;
+  transition: opacity 280ms ease;
+}
+
+.map-svg.town-focus #layer-towns > g {
+  opacity: 0.55;
+  transition: opacity 280ms ease;
+}
+
+.map-svg.town-focus #layer-towns > g.selected {
+  opacity: 1;
+}
+
+.map-svg.town-focus #layer-towns > g:not(.selected) .emblem,
+.map-svg.town-focus #layer-towns > g:not(.selected) .name,
+.map-svg.town-focus #layer-towns > g:not(.selected) .status,
+.map-svg.town-focus #layer-towns > g:not(.selected) .ring,
+.map-svg.town-focus #layer-towns > g:not(.selected) .wash,
+.map-svg.town-focus #layer-towns > g:not(.selected) .overlays,
+.map-svg.town-focus #layer-towns > g:not(.selected) .shutters {
+  opacity: 0;
+}
+
+#layer-death-shadow circle {
+  transition: opacity var(--motion-crossfade) ease;
+}
+
+#marker-galley-offshore,
+#port-chain {
+  transition: opacity 280ms ease;
+}
