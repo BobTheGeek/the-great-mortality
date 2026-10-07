@@ -1,0 +1,29 @@
+{
+  "name": "the-great-mortality",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The Great Mortality: a Black Death mystery strategy game for iPad (offline PWA).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "harness": "node design_handoff_great_mortality/reference/harness.js design_handoff_great_mortality/content/sim-spec.json 300",
+    "canvas": "node scripts/serve-canvas.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
+    "fake-indexeddb": "^6.2.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
+  }
+}

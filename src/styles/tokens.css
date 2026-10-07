@@ -1,0 +1,43 @@
+:root {
+  --surface-1: #efe3c9;
+  --surface-2: #e3d2ad;
+  --surface-raised: #f7ecd6;
+  --surface-edge: #cdb686;
+  --ink: #4a2f1d;
+  --ink-deep: #2a1c10;
+  --accent: #8b2e2e;
+  --accent-soft: #a85a5a;
+  --accent-on-dark: #c96b5e;
+  --gold: #b8902e;
+  --frame: #3a2a1c;
+  --frame-dark: #1f150c;
+  --night: #1f2129;
+  --night-deep: #101218;
+  --ink-on-dark: #f1e6cf;
+  --event-sheet: #f3eadb;
+  --spreading-fill: #c9b48a;
+  --burned-fill: #6b5a40;
+
+  --font-serif: "Iowan Old Style", Palatino, Georgia, serif;
+  --font-sans: "Avenir Next", Avenir, system-ui, sans-serif;
+
+  --frame-pad: 16px;
+  --spine: 14px;
+  --leaf-pad: 20px;
+
+  --radius-frame: 18px;
+  --radius-leaf: 10px;
+  --radius-leaf-spine: 2px;
+
+  --shadow-sheet: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --shadow-scrap: 3px 4px 0 rgba(74, 47, 29, 0.3);
+  --shadow-button: 2px 3px 0 #4a2f1d;
+
+  --parchment: radial-gradient(ellipse at 40% 40%, #efe3c9 0%, #e3d2ad 65%, #cdb686 100%);
+  --spine-gradient: linear-gradient(to right, #2a1c10, #5a4028 50%, #2a1c10);
+
+  --motion-fast: 80ms;
+  --motion-sheet: 280ms;
+  --motion-flip: 400ms;
+  --motion-crossfade: 900ms;
+}
