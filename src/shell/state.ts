@@ -1,17 +1,26 @@
 export interface QuizRecord {
-  attempts: number;
-  correctFirstTry: boolean;
-  needsReview: boolean;
-  completed: boolean;
+  answeredCount: number[];
+  firstTryCorrect: boolean[];
+  correct: boolean[];
+}
+
+export interface CardMeta {
+  month: number;
+  town?: string;
+  run: number;
 }
 
 export interface PersistentState {
   mysterySolved: string[];
   cluesFound: string[];
   codexSeen: string[];
+  codexRead: string[];
   chroniclesOpened: string[];
+  chroniclesRead: string[];
   quiz: Record<string, QuizRecord>;
   cardsEarned: string[];
+  cardsFlipped: string[];
+  cardMeta: Record<string, CardMeta>;
   epithetsEarned: string[];
   lensUnlocked: boolean;
   assistMissCounts: Record<string, number>;
@@ -24,9 +33,13 @@ export function createPersistentState(): PersistentState {
     mysterySolved: [],
     cluesFound: [],
     codexSeen: [],
+    codexRead: [],
     chroniclesOpened: [],
+    chroniclesRead: [],
     quiz: {},
     cardsEarned: [],
+    cardsFlipped: [],
+    cardMeta: {},
     epithetsEarned: [],
     lensUnlocked: false,
     assistMissCounts: {},

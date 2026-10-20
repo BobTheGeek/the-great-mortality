@@ -82,3 +82,15 @@ export function latestForTown(
       };
     });
 }
+
+export function fillClueText(
+  spec: Spec,
+  journal: RunJournal,
+  clueId: string,
+  text: string,
+): string {
+  const entry = [...journal.entries].reverse().find((e) => e.kind === 'clue' && e.refId === clueId);
+  const townId = entry?.townId;
+  const town = townId ? (spec.towns.find((t) => t.id === townId)?.name ?? townId) : '';
+  return fillPlaceholders(text, { town });
+}
