@@ -989,6 +989,21 @@
   color: rgba(74, 47, 29, 0.7);
 }
 
+.woodcut-art {
+  background: var(--surface-raised);
+  padding: 5px;
+  overflow: hidden;
+}
+
+.woodcut-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  mix-blend-mode: multiply;
+}
+
 .card-myth {
   font-size: 17px;
   font-weight: 700;

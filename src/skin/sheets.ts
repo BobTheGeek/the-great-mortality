@@ -213,7 +213,9 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
           <div class="earned-inner">
             <button class="earned-face earned-front" data-action="earned-flip">
               <span class="card-label">Myth · ${card.numeral} · Front</span>
-              <span class="woodcut">woodcut · ${esc(card.numeral)}</span>
+              <span class="woodcut woodcut-art">
+                <img class="woodcut-img" src="./cards/${card.id}.jpg" alt="" decoding="async" />
+              </span>
               <span class="card-myth">${esc(card.myth)}</span>
             </button>
             <button class="earned-face earned-back" data-action="earned-flip">
@@ -294,7 +296,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
           }
           ${state.codeStatus ? `<p class="code-status" data-testid="code-status">${esc(state.codeStatus)}</p>` : ''}
           <h3 class="section-label">Credits</h3>
-          <p class="credits">Built for the classroom. History after Ole Benedictow and Boccaccio; the plague’s true answer came from Yersin and Simond, 1894.</p>
+          <p class="credits">Built for the classroom. History after Ole Benedictow and Boccaccio; the plague’s true answer came from Yersin and Simond, 1894. Card engravings from public-domain collections via Wikimedia Commons.</p>
           <div class="sheet-actions">
             <button class="primary" data-action="paused-close" data-testid="paused-close">Return to the ledger</button>
           </div>`

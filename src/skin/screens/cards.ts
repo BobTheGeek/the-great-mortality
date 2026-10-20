@@ -23,7 +23,9 @@ export function cardsHtml(state: AppState, _codex: Map<string, CodexEntry>): str
           <div class="card-inner">
             <button class="card-face card-front" data-action="card-flip">
               <span class="card-label">Myth · ${card.numeral}</span>
-              <span class="woodcut">woodcut · ${esc(card.numeral)}</span>
+              <span class="woodcut woodcut-art">
+                <img class="woodcut-img" src="./cards/${card.id}.jpg" alt="" loading="lazy" decoding="async" />
+              </span>
               <span class="card-myth">${esc(card.myth)}</span>
               <span class="verdict-tag ${stampCls}">${stampText}</span>
             </button>
