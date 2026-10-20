@@ -7,8 +7,10 @@ import {
   applyRunCompletion,
   assistCluesFor,
   earnedCaption,
+  grantAdvisor,
   grantClue,
   grantDecree,
+  grantEvent,
   grantLens,
   grantOpening,
   grantQuestionSolved,
@@ -121,4 +123,21 @@ test('earned captions fill the month and town from card metadata', () => {
     'Earned in August 1348, when Collina buried its last.',
   );
   expect(earnedCaption(spec, persistent, 'beaked-mask')).toBeNull();
+});
+
+test('a scripted event opens its chronicle once', () => {
+  const persistent = createPersistentState();
+  const events = grantEvent(spec, persistent, 'fear-and-blame', ctx);
+  expect(events).toEqual([{ kind: 'chronicle', id: 'fear-and-blame' }]);
+  expect(isChronicleUnlocked(persistent, 'fear-and-blame')).toBe(true);
+  expect(grantEvent(spec, persistent, 'fear-and-blame', ctx)).toEqual([]);
+});
+
+test('the astrologer earns the Gods punishment card on first appearance', () => {
+  const persistent = createPersistentState();
+  const events = grantAdvisor(spec, persistent, 'astrologer', ctx);
+  expect(events).toEqual([{ kind: 'card', id: 'gods-punishment' }]);
+  expect(isCardEarned(persistent, 'gods-punishment')).toBe(true);
+  expect(grantAdvisor(spec, persistent, 'astrologer', ctx)).toEqual([]);
+  expect(grantAdvisor(spec, persistent, 'physician', ctx)).toEqual([]);
 });

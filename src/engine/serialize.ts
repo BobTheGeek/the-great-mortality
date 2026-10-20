@@ -24,7 +24,7 @@ export interface SerializedRun {
   counters: Counters;
   assist: string[];
   pending: PendingClue[];
-  flags: Record<string, boolean>;
+  flags: Record<string, boolean | string>;
   startTreasury: number;
 }
 

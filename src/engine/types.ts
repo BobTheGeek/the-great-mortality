@@ -61,7 +61,7 @@ export interface RunState {
   counters: Counters;
   assist: Set<string>;
   pending: PendingClue[];
-  flags: Record<string, boolean>;
+  flags: Record<string, boolean | string>;
   startTreasury: number;
 }
 

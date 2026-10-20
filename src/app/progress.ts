@@ -1,4 +1,5 @@
 import type { RunState } from '../engine/types';
+import { epithet } from '../engine/engine';
 import { collectTermRefs, fillPlaceholders } from '../spec/markup';
 import type { Spec } from '../spec/types';
 import { calendarMonth, calendarYear, monthName, startYearFromSpec } from '../skin/calendar';
@@ -152,6 +153,45 @@ export function grantQuestionSolved(
     .forEach((c) => earnCard(spec, persistent, c.id, ctx, events));
   return events;
 }
+
+export function grantEvent(
+  spec: Spec,
+  persistent: PersistentState,
+  eventId: string,
+  _ctx: GrantContext,
+): UnlockEvent[] {
+  const events: UnlockEvent[] = [];
+  spec.chronicles
+    .filter((c) => c.unlock === `event:${eventId}`)
+    .forEach((c) => openChronicle(spec, persistent, c.id, events));
+  return events;
+}
+
+export function grantAdvisor(
+  spec: Spec,
+  persistent: PersistentState,
+  advisorId: string,
+  ctx: GrantContext,
+): UnlockEvent[] {
+  const events: UnlockEvent[] = [];
+  spec.cards
+    .filter((c) => c.earn === `advisor:${advisorId}:first`)
+    .forEach((c) => earnCard(spec, persistent, c.id, ctx, events));
+  return events;
+}
+
+export function finalizeEpithet(
+  spec: Spec,
+  persistent: PersistentState,
+  run: RunState,
+): { id: string; isNew: boolean; name: string } {
+  const id = epithet(run);
+  const isNew = !persistent.epithetsEarned.includes(id);
+  if (isNew) persistent.epithetsEarned.push(id);
+  const def = spec.epithets.list.find((e) => e.id === id);
+  return { id, isNew, name: def?.name ?? id };
+}
+
 
 export function grantLens(
   spec: Spec,
