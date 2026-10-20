@@ -125,6 +125,11 @@ test.describe('the mystery', () => {
 
     await expect(page.getByTestId('earned-moment')).toBeVisible();
     await expect(page.getByTestId('earned-moment')).toContainText('Plague doctors wore beaked masks');
+    const earnedArt = page.locator('[data-testid="earned-moment"] .woodcut-img');
+    await expect(earnedArt).toBeVisible();
+    await expect
+      .poll(async () => earnedArt.evaluate((img) => (img as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(200);
     await page.locator('.earned-card .earned-front').click();
     await expect(page.getByTestId('earned-moment')).toContainText('almost 300 years after the Black Death');
     await page.getByTestId('earned-keep').click();
@@ -133,6 +138,10 @@ test.describe('the mystery', () => {
     await expect(page.getByTestId('card-beaked-mask')).toBeVisible();
     await expect(page.getByTestId('card-beaked-mask').locator('.new-tag')).toHaveCount(0);
     await expect(page.getByTestId('card-bathing')).toContainText('Sealed · earned in play');
+    const cardArt = page.getByTestId('card-beaked-mask').locator('.woodcut-img');
+    await expect
+      .poll(async () => cardArt.evaluate((img) => (img as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(200);
     expect(problems).toEqual([]);
   });
 
