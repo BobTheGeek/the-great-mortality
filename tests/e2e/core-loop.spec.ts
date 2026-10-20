@@ -25,6 +25,7 @@ async function settle(page: Page): Promise<void> {
 
 async function enterGame(page: Page, url = '/'): Promise<void> {
   await page.goto(url);
+  await expect(page.getByTestId('splash')).toHaveCount(0);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId('name-0').click();
 }
@@ -33,6 +34,7 @@ test.describe('core loop', () => {
   test('starts a run and shows the November 1347 map', async ({ page }) => {
     const problems = trackProblems(page);
     await page.goto('/');
+    await expect(page.getByTestId('splash')).toHaveCount(0);
     await expect(page.getByTestId('start-screen')).toBeVisible();
     await expect(page.getByTestId('opening-line')).toHaveText('Twelve galleys from the Black Sea.');
     await page.getByTestId('opening-next').click();

@@ -87,7 +87,6 @@ function returnVisit(state: AppState): string {
   return `
     <div class="app app-start" data-testid="start-screen">
       ${nightScene(true)}
-      ${a2hsHtml(state)}
       <main class="return-visit" data-testid="return-visit">
         <header class="return-head">
           <p class="kicker">${esc(t.kicker.toUpperCase())}</p>

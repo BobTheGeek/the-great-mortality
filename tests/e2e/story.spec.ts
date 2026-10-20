@@ -25,6 +25,7 @@ async function settle(page: Page): Promise<void> {
 
 async function startSeeded(page: Page, seed = 1, nameIndex = 0): Promise<void> {
   await page.goto(`/?seed=${seed}`);
+  await expect(page.getByTestId('splash')).toHaveCount(0);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId(`name-${nameIndex}`).click();
 }
@@ -195,6 +196,7 @@ test.describe('milestone 4 screenshots', () => {
       mkdirSync('screenshots/milestone-4', { recursive: true });
 
       await page.goto('/');
+      await expect(page.getByTestId('splash')).toHaveCount(0);
       await expect(page.getByTestId('opening-line')).toBeVisible();
       await page.getByTestId('opening-next').click();
       await settle(page);
@@ -206,6 +208,7 @@ test.describe('milestone 4 screenshots', () => {
       await page.getByTestId('name-0').click();
 
       await page.reload();
+      await expect(page.getByTestId('splash')).toHaveCount(0);
       await expect(page.getByTestId('return-visit')).toBeVisible();
       await settle(page);
       await page.screenshot({ path: `screenshots/milestone-4/${size.name}-return.png` });

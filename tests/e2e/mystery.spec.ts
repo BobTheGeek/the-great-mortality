@@ -25,6 +25,7 @@ async function settle(page: Page): Promise<void> {
 
 async function startSeeded(page: Page, seed = 1000): Promise<void> {
   await page.goto(`/?seed=${seed}`);
+  await expect(page.getByTestId('splash')).toHaveCount(0);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId('name-0').click();
 }
