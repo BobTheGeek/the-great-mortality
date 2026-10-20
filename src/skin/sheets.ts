@@ -4,6 +4,7 @@ import type { AppState } from '../app/store';
 import type { CodexEntry } from '../spec/types';
 import { esc, renderCopy } from '../shell/dom';
 import { calendarMonth, calendarYear, monthName, startYearFromSpec } from './calendar';
+import { howtoSheetHtml } from './howto';
 import { codexEntryHtml } from './screens/codex';
 
 export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>): string {
@@ -11,6 +12,10 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
   if (!sheet) return '';
   const spec = state.spec;
   const run = state.run;
+
+  if (sheet.kind === 'howto') {
+    return howtoSheetHtml(state);
+  }
 
   if (sheet.kind === 'confirm-issue' && run) {
     const decree = spec.decrees.find((d) => d.id === sheet.decreeId);
@@ -275,6 +280,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
             : `
           <h3 class="section-label">This device</h3>
           <div class="settings-row">
+            <button class="quiet" data-action="howto-open" data-testid="paused-howto">How to play</button>
             <button class="quiet danger-ghost" data-action="reset-progress" data-testid="reset-progress">Reset all progress</button>
           </div>
           <h3 class="section-label">Progress backup</h3>
@@ -355,6 +361,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
         </section>
         <section class="dev-section">
           <button class="quiet" data-action="dev-lens" data-testid="dev-lens">Open the Lens</button>
+          <button class="quiet" data-action="dev-howto" data-testid="dev-howto">Show how-to</button>
           <button class="quiet" data-action="dev-unlock" data-testid="dev-unlock">Unlock all</button>
           <button class="quiet danger-ghost" data-action="dev-reset" data-testid="dev-reset">Reset all</button>
         </section>

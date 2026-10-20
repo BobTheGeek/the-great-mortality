@@ -28,6 +28,9 @@ async function enterGame(page: Page, url = '/'): Promise<void> {
   await expect(page.getByTestId('splash')).toHaveCount(0);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId('name-0').click();
+  if (await page.getByTestId('sheet-howto').count()) {
+    await page.getByTestId('howto-close').click();
+  }
 }
 
 test.describe('core loop', () => {
@@ -41,6 +44,9 @@ test.describe('core loop', () => {
     await expect(page.getByTestId('opening-line')).toHaveText('Half the crews are dead at their oars.');
     await page.getByTestId('opening-skip').click();
     await page.getByTestId('name-0').click();
+    if (await page.getByTestId('sheet-howto').count()) {
+      await page.getByTestId('howto-close').click();
+    }
     await expect(page.getByTestId('map-heading')).toHaveText('November 1347');
     await expect(page.getByTestId('map-subheading')).toContainText('All Saints · month 1 of 18');
     await expect(page.getByTestId('treasury')).toContainText('3,000');

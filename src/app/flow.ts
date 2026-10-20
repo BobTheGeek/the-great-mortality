@@ -31,6 +31,7 @@ import {
 } from './progress';
 import { createQuizRecord, recordAnswer } from './quiz';
 import type { AppState, LensLayers, PendingStep, Screen, Store } from './store';
+import { HOWTO_SLIDES } from '../skin/howto';
 
 export interface Flow {
   actions: Record<string, (el: HTMLElement) => void>;
@@ -318,11 +319,13 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
           run.flags[`new:${event.kind}:${event.id}`] = true;
         });
       }
+      const showHowto = !state.persistent.howToPlaySeen;
+      if (showHowto) state.persistent.howToPlaySeen = true;
       store.update({
         run,
         journal: createJournal(),
         screen: 'map',
-        sheet: null,
+        sheet: showHowto ? { kind: 'howto', slide: 0 } : null,
         queue: [],
         pendingChronicle: null,
         advisorPeek: null,
@@ -838,6 +841,28 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
       store.update({ a2hsExpanded: false });
     },
 
+    'howto-open': () => {
+      store.update({ sheet: { kind: 'howto', slide: 0 } });
+    },
+
+    'howto-next': () => {
+      const state = store.get();
+      if (state.sheet?.kind !== 'howto') return;
+      store.update({
+        sheet: { kind: 'howto', slide: Math.min(state.sheet.slide + 1, HOWTO_SLIDES.length - 1) },
+      });
+    },
+
+    'howto-back': () => {
+      const state = store.get();
+      if (state.sheet?.kind !== 'howto') return;
+      store.update({ sheet: { kind: 'howto', slide: Math.max(0, state.sheet.slide - 1) } });
+    },
+
+    'howto-close': () => {
+      store.update({ sheet: null });
+    },
+
     'copy-code': () => {
       const code = encodeSaveCode(buildDocument());
       store.update({ codeText: code, codeStatus: null });
@@ -982,6 +1007,10 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         ledger: 'ledger',
         selectedTown: null,
       });
+    },
+
+    'dev-howto': () => {
+      store.update({ sheet: { kind: 'howto', slide: 0 }, devNote: null });
     },
 
     'dev-unlock': () => {

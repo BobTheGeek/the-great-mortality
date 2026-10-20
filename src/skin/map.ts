@@ -109,12 +109,11 @@ export function createMapController(host: HTMLElement): MapController {
   const fleas = svg.querySelector<SVGGElement>('#lens-fleas')!;
   const spared = svg.querySelector<SVGCircleElement>('#lens-spared')!;
 
-  // The compass hides the dev sheet behind seven quick taps. Nudged left of
-  // its design spot (1100,60) so the slice crop never takes it off-screen at
-  // the reference landscape size.
+  // The compass hides the dev sheet behind seven quick taps. Kept left of the
+  // pause and help buttons and clear of the slice crop at every size.
   const compass = svg.querySelector<SVGGElement>('#compass');
   if (compass) {
-    compass.setAttribute('transform', 'translate(1035 70)');
+    compass.setAttribute('transform', 'translate(940 60)');
     compass.setAttribute('data-action', 'dev-tap');
     compass.setAttribute('data-testid', 'compass');
     const hit = document.createElementNS(SVG_NS, 'circle');

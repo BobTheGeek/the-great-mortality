@@ -535,7 +535,7 @@
 .timeline {
   position: relative;
   flex: 0 0 96px;
-  margin: 0 14px;
+  margin: 10px 14px 0;
 }
 
 .timeline-line {
@@ -559,11 +559,12 @@
 }
 
 .pin-title {
-  font-size: 13px;
+  font-size: 12px;
   font-style: italic;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.15;
   min-height: 30px;
+  max-width: 98px;
   opacity: 0.9;
 }
 

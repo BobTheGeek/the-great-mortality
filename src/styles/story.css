@@ -364,7 +364,8 @@
 
 .advisor-ground,
 .event-ground,
-.lens-ground {
+.lens-ground,
+.howto-ground {
   position: absolute;
   inset: 0;
   display: flex;
@@ -379,7 +380,8 @@
 
 .advisor-ground .sheet,
 .event-ground .sheet,
-.lens-ground .sheet {
+.lens-ground .sheet,
+.howto-ground .sheet {
   position: relative;
   left: auto;
   top: auto;
@@ -787,6 +789,111 @@
 
 .map-svg.lens-open #layer-death-shadow {
   opacity: 0.2;
+}
+
+/* ------------------------------------------------------------- how to play */
+
+.sheet-howto {
+  width: min(880px, calc(100vw - 48px));
+  max-height: 94vh;
+  overflow: auto;
+  padding: 20px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.howto-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.howto-head .label {
+  margin: 0;
+}
+
+.howto-img-box {
+  display: block;
+  padding: 4px;
+  border: 1.5px solid var(--ink-deep);
+  background: var(--surface-raised);
+}
+
+.howto-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 880 / 540;
+  object-fit: cover;
+  mix-blend-mode: multiply;
+}
+
+.howto-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.howto-body {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.howto-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.howto-dots {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.howto-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  opacity: 0.5;
+}
+
+.howto-dot.current {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.howto-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.howto-actions .primary {
+  min-width: 190px;
+  min-height: 52px;
+}
+
+.howto-actions .quiet {
+  min-height: 52px;
+}
+
+@media (orientation: portrait) {
+  .sheet-howto {
+    padding: 16px 18px 18px;
+  }
+
+  .howto-title {
+    font-size: 24px;
+  }
+
+  .howto-actions .primary {
+    min-width: 150px;
+  }
 }
 
 /* ------------------------------------------------------------ end screens */

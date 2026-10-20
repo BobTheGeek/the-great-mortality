@@ -56,6 +56,9 @@ test.describe('ipad pass', () => {
         await dismissA2hs(page);
         await page.getByTestId('opening-skip').click();
         await page.getByTestId('name-0').click();
+        if (await page.getByTestId('sheet-howto').count()) {
+          await page.getByTestId('howto-close').click();
+        }
 
         // First month.
         await expect(page.getByTestId('map-heading')).toHaveText('November 1347');
@@ -132,6 +135,9 @@ test.describe('milestone 6 screenshots', () => {
         await dismissA2hs(page);
         await page.getByTestId('opening-skip').click();
         await page.getByTestId('name-0').click();
+        if (await page.getByTestId('sheet-howto').count()) {
+          await page.getByTestId('howto-close').click();
+        }
         await page.getByTestId('decree-hold-ships').click();
         await expect(page.getByTestId('decree-hold-ships')).toContainText('ACTIVE');
         await settle(page);

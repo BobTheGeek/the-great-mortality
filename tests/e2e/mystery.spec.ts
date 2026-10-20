@@ -28,6 +28,9 @@ async function startSeeded(page: Page, seed = 1000): Promise<void> {
   await expect(page.getByTestId('splash')).toHaveCount(0);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId('name-0').click();
+  if (await page.getByTestId('sheet-howto').count()) {
+    await page.getByTestId('howto-close').click();
+  }
 }
 
 test.describe('the mystery', () => {

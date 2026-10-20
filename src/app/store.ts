@@ -31,6 +31,7 @@ export type SheetState =
   | { kind: 'event'; eventId: string }
   | { kind: 'advisor'; advisorId: string; offer: AdvisorOffer | null }
   | { kind: 'lens-reveal' }
+  | { kind: 'howto'; slide: number }
   | { kind: 'dev' }
   | { kind: 'codex-term'; termId: string; x: number; y: number };
 

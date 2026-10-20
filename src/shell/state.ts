@@ -26,6 +26,7 @@ export interface PersistentState {
   assistMissCounts: Record<string, number>;
   a2hsDismissed: boolean;
   a2hsWarned: boolean;
+  howToPlaySeen: boolean;
   runsCompleted: number;
 }
 
@@ -46,6 +47,7 @@ export function createPersistentState(): PersistentState {
     assistMissCounts: {},
     a2hsDismissed: false,
     a2hsWarned: false,
+    howToPlaySeen: false,
     runsCompleted: 0,
   };
 }

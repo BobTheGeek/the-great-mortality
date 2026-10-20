@@ -27,7 +27,10 @@ export function mountMapShell(root: HTMLElement): void {
             <h1 data-testid="map-heading"></h1>
             <p class="map-subheading" data-testid="map-subheading"></p>
           </div>
-          <button class="icon-btn pause-btn" data-action="pause" data-testid="pause" aria-label="Pause">☰</button>
+          <div class="map-top-actions">
+            <button class="icon-btn" data-action="howto-open" data-testid="howto-open" aria-label="How to play">?</button>
+            <button class="icon-btn pause-btn" data-action="pause" data-testid="pause" aria-label="Pause">☰</button>
+          </div>
           <div class="advisor-peek" data-testid="advisor-peek" hidden></div>
         </section>
         <div class="spine"></div>
@@ -199,18 +202,22 @@ function navHtml(state: AppState): string {
   const clues = state.persistent.cluesFound.length;
   const tiles = NAV_TILES.map(
     (tile) => `
-      <button class="nav-tile" data-action="nav" data-target="${tile.id}" data-testid="nav-${tile.id}">
-        ${esc(tile.label)}
+      <span class="nav-cell">
+        <button class="nav-tile" data-action="nav" data-target="${tile.id}" data-testid="nav-${tile.id}">
+          ${esc(tile.label)}
+        </button>
         ${tile.id === 'evidence' && clues > 0 ? `<span class="badge">${clues}</span>` : ''}
-      </button>`,
+      </span>`,
   ).join('');
   const lensUnlocked = state.persistent.lensUnlocked;
   const lens = `
-    <button class="nav-tile ${lensUnlocked ? '' : 'nav-lens'}" data-action="nav" data-target="lens" data-testid="nav-lens" ${
-      lensUnlocked ? '' : 'aria-disabled="true"'
-    }>
-      Lens${lensUnlocked ? '' : '<span class="seal-dot"></span>'}
-    </button>`;
+    <span class="nav-cell">
+      <button class="nav-tile ${lensUnlocked ? '' : 'nav-lens'}" data-action="nav" data-target="lens" data-testid="nav-lens" ${
+        lensUnlocked ? '' : 'aria-disabled="true"'
+      }>
+        Lens${lensUnlocked ? '' : '<span class="seal-dot"></span>'}
+      </button>
+    </span>`;
   return `<div class="ledger-nav">${tiles}${lens}</div>`;
 }
 

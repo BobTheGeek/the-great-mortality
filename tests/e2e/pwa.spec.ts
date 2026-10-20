@@ -34,6 +34,9 @@ async function startSeeded(page: Page, seed = 1000): Promise<void> {
   await dismissA2hs(page);
   await page.getByTestId('opening-skip').click();
   await page.getByTestId('name-0').click();
+  if (await page.getByTestId('sheet-howto').count()) {
+    await page.getByTestId('howto-close').click();
+  }
 }
 
 async function openDev(page: Page): Promise<void> {
@@ -140,6 +143,9 @@ test.describe('dev mode', () => {
     await page.getByTestId('dev-new-seed').click();
     await expect(page.getByTestId('opening-title')).toBeVisible();
     await page.getByTestId('name-0').click();
+    if (await page.getByTestId('sheet-howto').count()) {
+      await page.getByTestId('howto-close').click();
+    }
     await expect(page.getByTestId('map-heading')).toHaveText('November 1347');
     await page.getByTestId('pause').click();
     await page.getByTestId('paused-close').click();
@@ -167,6 +173,9 @@ test.describe('milestone 5 screenshots', () => {
       await dismissA2hs(page);
       await page.getByTestId('opening-skip').click();
       await page.getByTestId('name-0').click();
+      if (await page.getByTestId('sheet-howto').count()) {
+        await page.getByTestId('howto-close').click();
+      }
       await page.getByTestId('pause').click();
       await page.getByTestId('copy-code').click();
       await expect(page.getByTestId('code-output')).toBeVisible();

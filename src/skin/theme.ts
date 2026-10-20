@@ -4,6 +4,7 @@ export interface Theme {
   inkDeep: string;
   mapInk: string;
   mapDropcap: string;
+  mapHalo: string;
   lateOpacity: number;
   roadsInner: number;
 }
@@ -46,6 +47,7 @@ export function themeFor(t: number): Theme {
     inkDeep: '#2a1c10',
     mapInk: lerpHex('#4a2f1d', '#f1e6cf', k),
     mapDropcap: lerpHex('#8b2e2e', '#c96b5e', k),
+    mapHalo: lerpHex('#e8dab8', '#3a2a1c', k),
     lateOpacity: k,
     roadsInner: k * 0.7,
   };
@@ -57,6 +59,7 @@ export function applyTheme(root: HTMLElement, theme: Theme): void {
   root.style.setProperty('--ink-deep', theme.inkDeep);
   root.style.setProperty('--map-ink', theme.mapInk);
   root.style.setProperty('--map-dropcap', theme.mapDropcap);
+  root.style.setProperty('--map-halo', theme.mapHalo);
   root.style.setProperty('--late-opacity', String(theme.lateOpacity));
   root.style.setProperty('--roads-inner-opacity', String(theme.roadsInner));
 }

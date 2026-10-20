@@ -151,6 +151,19 @@ body {
   right: 16px;
 }
 
+.map-top-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 4;
+}
+
+.map-top-actions .pause-btn {
+  position: static;
+}
+
 .leaf-ledger {
   overflow: hidden;
 }
@@ -419,9 +432,20 @@ body {
 
 .ledger-nav {
   display: flex;
-  gap: 3px;
+  gap: 1px;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.nav-cell {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+.nav-cell .nav-tile {
+  flex: 1 1 auto;
 }
 
 .nav-tile {
@@ -438,8 +462,8 @@ body {
   font-family: var(--font-sans);
   font-size: clamp(6.5px, 0.62vw, 9.5px);
   font-weight: 600;
-  letter-spacing: -0.2px;
-  padding: 0 2px;
+  letter-spacing: -0.3px;
+  padding: 0 1px;
   cursor: default;
 }
 
@@ -469,6 +493,8 @@ body {
   background: var(--accent);
   border: 1.5px solid var(--ink-deep);
   color: #fff;
+  pointer-events: none;
+  z-index: 2;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 700;
@@ -482,6 +508,11 @@ body {
   font-size: 18px;
   padding: 0 6px;
   white-space: nowrap;
+}
+
+/* Beat .primary's roomy padding inside the ledger row. */
+.ledger-actions .end-month {
+  padding: 0 6px;
 }
 
 .primary {

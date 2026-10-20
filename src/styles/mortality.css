@@ -77,6 +77,11 @@ body {
 #layer-towns .name,
 #layer-towns .status {
   fill: var(--map-ink);
+  /* A paper halo keeps road lines from running through the labels. */
+  paint-order: stroke;
+  stroke: var(--map-halo, #e8dab8);
+  stroke-width: 7px;
+  stroke-linejoin: round;
 }
 
 #roads-inner {
@@ -102,7 +107,6 @@ body {
   transition: stroke var(--motion-crossfade) ease, fill var(--motion-crossfade) ease,
     color var(--motion-crossfade) ease, opacity var(--motion-crossfade) ease;
 }
-
 #layer-towns > g[data-state='healthy'] .ring {
   opacity: 0;
 }
