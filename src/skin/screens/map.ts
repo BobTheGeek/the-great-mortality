@@ -28,6 +28,7 @@ export function mountMapShell(root: HTMLElement): void {
             <p class="map-subheading" data-testid="map-subheading"></p>
           </div>
           <button class="icon-btn pause-btn" data-action="pause" data-testid="pause" aria-label="Pause">☰</button>
+          <div class="advisor-peek" data-testid="advisor-peek" hidden></div>
         </section>
         <div class="spine"></div>
         <section class="leaf leaf-ledger" data-testid="leaf-ledger"></section>
@@ -35,6 +36,29 @@ export function mountMapShell(root: HTMLElement): void {
     </div>
     <div class="sheet-host" data-testid="sheet-host"></div>
   `;
+}
+
+export function renderPeek(root: HTMLElement, state: AppState, codex: Map<string, CodexEntry>): void {
+  const host = root.querySelector<HTMLElement>('[data-testid="advisor-peek"]');
+  if (!host) return;
+  const peek = state.advisorPeek;
+  const run = state.run;
+  if (!peek || !run || state.lensOpen || state.screen !== 'map') {
+    host.hidden = true;
+    return;
+  }
+  const advisor = state.spec.advisors.find((a) => a.id === peek.advisorId);
+  if (!advisor) {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  host.innerHTML = `
+    <span class="peek-portrait"></span>
+    <span class="peek-body">
+      <span class="peek-label">${esc(advisor.name.toUpperCase())}</span>
+      <span class="peek-line">${renderCopy(peek.text, codex)}</span>
+    </span>`;
 }
 
 export function renderHeading(root: HTMLElement, state: AppState): void {
@@ -190,9 +214,45 @@ function navHtml(state: AppState): string {
   return `<div class="ledger-nav">${tiles}${lens}</div>`;
 }
 
+function lensLegendHtml(state: AppState): string {
+  const lens = state.spec.mystery.lensReveal;
+  const rows = lens.legend
+    .map(
+      (row) => `
+      <li class="lens-row lens-${row.id}">
+        <span class="lens-row-glyph" aria-hidden="true"></span>
+        <span class="lens-row-body">
+          <span class="lens-row-title">${esc(row.title)}</span>
+          <span class="lens-row-text">${esc(row.text)}</span>
+        </span>
+      </li>`,
+    )
+    .join('');
+  const toggle = (id: keyof typeof state.lensLayers, label: string) => `
+    <button class="lens-toggle ${state.lensLayers[id] ? 'on' : ''}" data-action="lens-layer" data-layer="${id}" data-testid="lens-toggle-${id}">
+      ${label} · ${state.lensLayers[id] ? 'on' : 'off'}
+    </button>`;
+  return `
+    <div class="lens-legend" data-testid="lens-legend">
+      <h2 class="lens-heading"><span class="dropcap">W</span>hat was really happening</h2>
+      <ul class="lens-rows">${rows}</ul>
+      <p class="lens-toggle-label">Toggle layers</p>
+      <div class="lens-toggles">
+        ${toggle('rats', 'Rats')}
+        ${toggle('fleas', 'Fleas')}
+        ${toggle('forms', 'Forms')}
+      </div>
+      <button class="quiet lens-close" data-action="close-lens" data-testid="close-lens">Close the Lens</button>
+    </div>`;
+}
+
 export function renderLedger(root: HTMLElement, state: AppState, codex: Map<string, CodexEntry>): void {
   const host = root.querySelector('[data-testid="leaf-ledger"]');
   if (!host) return;
+  if (state.lensOpen) {
+    host.innerHTML = lensLegendHtml(state);
+    return;
+  }
   if (state.ledger === 'town' && state.selectedTown) {
     host.innerHTML = townDetailHtml(state, codex);
     return;

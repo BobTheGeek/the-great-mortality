@@ -4,11 +4,17 @@ import type { Spec } from '../spec/types';
 import { calendarMonth, seasonOf } from './calendar';
 import { deriveTownState, townStatusText } from './town-state';
 
+export interface LensView {
+  open: boolean;
+  layers: { rats: boolean; fleas: boolean; forms: boolean };
+}
+
 export interface MapUpdate {
   spec: Spec;
   run: RunState;
   selectedDecree: string | null;
   focusTown: string | null;
+  lens: LensView;
 }
 
 export interface MapController {
@@ -39,6 +45,7 @@ export function createMapController(host: HTMLElement): MapController {
   svg.setAttribute('aria-label', 'Map of the six towns');
 
   const towns = new Map<string, TownRefs>();
+
   svg.querySelectorAll<SVGGElement>('#layer-towns > g').forEach((g) => {
     const id = g.id.replace('town-', '');
     const [x, y] = translateOf(g);
@@ -69,6 +76,35 @@ export function createMapController(host: HTMLElement): MapController {
   chain.setAttribute('stroke-linecap', 'round');
   chain.style.opacity = '0';
   layerRoutes.appendChild(chain);
+
+  // Lens overlay: one rat colony circle per town, and the galley landing ring.
+  const lensGroup = svg.querySelector<SVGGElement>('#layer-lens')!;
+  const ratLayer = svg.querySelector<SVGGElement>('#lens-rats')!;
+  ratLayer.innerHTML = '';
+  const ratCircles = new Map<string, SVGCircleElement>();
+  towns.forEach(({ g }, id) => {
+    const [x, y] = translateOf(g);
+    const circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('cx', String(x));
+    circle.setAttribute('cy', String(y));
+    circle.setAttribute('fill', 'url(#rat-stipple)');
+    circle.setAttribute('stroke', '#4a2f1d');
+    circle.setAttribute('stroke-width', '1.5');
+    circle.setAttribute('stroke-dasharray', '4 4');
+    ratLayer.appendChild(circle);
+    ratCircles.set(id, circle);
+  });
+  const landingRing = document.createElementNS(SVG_NS, 'circle');
+  landingRing.setAttribute('cx', '300');
+  landingRing.setAttribute('cy', '660');
+  landingRing.setAttribute('r', '42');
+  landingRing.setAttribute('fill', 'none');
+  landingRing.setAttribute('stroke', '#8b2e2e');
+  landingRing.setAttribute('stroke-width', '3');
+  lensGroup.appendChild(landingRing);
+  const pneumonic = svg.querySelector<SVGGElement>('#lens-pneumonic')!;
+  const fleas = svg.querySelector<SVGGElement>('#lens-fleas')!;
+  const spared = svg.querySelector<SVGCircleElement>('#lens-spared')!;
 
   const focusRing = document.createElementNS(SVG_NS, 'circle');
   focusRing.setAttribute('r', '64');
@@ -151,6 +187,38 @@ export function createMapController(host: HTMLElement): MapController {
       focusRing.style.opacity = '1';
     } else {
       focusRing.style.opacity = '0';
+    }
+
+    const lens = u.lens;
+    lensGroup.style.opacity = lens.open ? '1' : '0';
+    svg.classList.toggle('lens-open', lens.open);
+    if (lens.open) {
+      towns.forEach(({ g }, id) => {
+        const t = u.run.towns[id]!;
+        const circle = ratCircles.get(id)!;
+        const initial = u.spec.sim.ratDensity[t.type] ?? Math.max(1, t.ratS + t.ratI);
+        const frac = Math.max(0, Math.min(1, (t.ratS + t.ratI) / Math.max(1, initial)));
+        circle.setAttribute('r', String(34 + 86 * frac));
+        circle.style.opacity = frac <= 0.02 ? '0' : String(0.25 + 0.6 * frac);
+      });
+      ratLayer.style.display = lens.layers.rats ? '' : 'none';
+      fleas.style.display = lens.layers.fleas ? '' : 'none';
+      pneumonic.style.display = lens.layers.forms ? '' : 'none';
+      let breath: { x: number; y: number; p: number } | null = null;
+      let totalP = 0;
+      towns.forEach(({ g }, id) => {
+        const t = u.run.towns[id]!;
+        totalP += t.P;
+        const [x, y] = translateOf(g);
+        if (t.P > 0 && (!breath || t.P > breath.p)) breath = { x, y, p: t.P };
+      });
+      if (breath) {
+        const spot = breath as { x: number; y: number };
+        pneumonic.setAttribute('transform', `translate(${spot.x - 680} ${spot.y - 388})`);
+      }
+      pneumonic.style.opacity = String(Math.max(0, Math.min(1, totalP / 40)));
+      const fontenera = u.run.towns[u.spec.sim.isolatedTown];
+      spared.style.display = fontenera && fontenera.D === 0 ? '' : 'none';
     }
   }
 

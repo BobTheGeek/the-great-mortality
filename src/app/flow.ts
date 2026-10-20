@@ -1,18 +1,22 @@
-import { createRun, endMonth, issueDecree, liftDecree } from '../engine/engine';
+import { autoplayToEnd, createRun, endMonth, issueDecree, liftDecree } from '../engine/engine';
 import { serializeRun } from '../engine/serialize';
-import type { RunEnd, RunState } from '../engine/types';
-import { collectTermRefs } from '../spec/markup';
+import type { RunState } from '../engine/types';
+import { createPersistentState, createJournal } from '../shell/state';
 import type { SaveStore } from '../shell/save';
-import { createJournal, createPersistentState } from '../shell/state';
 import { deriveDecreeRow } from '../skin/decrees';
 import { composeReport } from '../skin/report';
+import { advisorForMonth, advisorLine, advisorOffer, applyPendingOffer } from './advisors';
 import { addDecreeEntry, addReportEntries } from './journal';
 import { allQuestionsSolved, evaluateTheory, solveQuestion } from './mystery';
+import { namePageCount } from './opening';
 import {
   applyRunCompletion,
   assistCluesFor,
+  finalizeEpithet,
+  grantAdvisor,
   grantClue,
   grantDecree,
+  grantEvent,
   grantLens,
   grantOpening,
   grantQuestionSolved,
@@ -22,8 +26,8 @@ import {
   markTermsSeen,
   type UnlockEvent,
 } from './progress';
-import { createQuizRecord, quizComplete, recordAnswer } from './quiz';
-import type { Screen, Store } from './store';
+import { createQuizRecord, recordAnswer } from './quiz';
+import type { AppState, LensLayers, PendingStep, Screen, Store } from './store';
 
 export interface Flow {
   actions: Record<string, (el: HTMLElement) => void>;
@@ -53,22 +57,54 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     void saves.save(state.persistent, state.run ? serializeRun(state.run) : null, state.journal);
   };
 
+  const clearRunUi = (): Partial<AppState> => ({
+    ledger: 'ledger',
+    selectedTown: null,
+    selectedDecree: null,
+    boardQuestion: null,
+    codexTerm: null,
+    chronicleId: null,
+    chronicleQuiz: null,
+    lensOpen: false,
+  });
+
   const beginAgain = (): void => {
     store.update({
       run: null,
       journal: createJournal(),
       screen: 'start',
       sheet: null,
-      ledger: 'ledger',
-      selectedTown: null,
-      selectedDecree: null,
-      boardQuestion: null,
-      codexTerm: null,
-      chronicleId: null,
-      chronicleQuiz: null,
-      earnedQueue: [],
+      queue: [],
+      pendingChronicle: null,
+      advisorPeek: null,
+      openingStarted: false,
+      openingLine: 0,
+      openingTitle: false,
+      namePage: 0,
+      ...clearRunUi(),
     });
     persist();
+  };
+
+  const earnedSteps = (events: UnlockEvent[]): PendingStep[] =>
+    events.filter((e) => e.kind === 'card').map((e) => ({ kind: 'earned' as const, cardId: e.id }));
+
+  const markNew = (events: UnlockEvent[]): void => {
+    const run = store.get().run;
+    if (!run) return;
+    events.forEach((event) => {
+      run.flags[`new:${event.kind}:${event.id}`] = true;
+    });
+  };
+
+  /** Presents unlock moments immediately when the player is mid-month. */
+  const present = (events: UnlockEvent[]): void => {
+    markNew(events);
+    const steps = earnedSteps(events);
+    if (steps.length) {
+      store.update({ queue: [...store.get().queue, ...steps] });
+      advance();
+    }
   };
 
   const finalizeOnce = (run: RunState): UnlockEvent[] => {
@@ -80,41 +116,6 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     });
   };
 
-  const openNextEarned = (
-    finish: 'none' | 'begin-again' | 'end-stub',
-    ended: RunEnd,
-  ): boolean => {
-    const state = store.get();
-    if (state.sheet || state.earnedQueue.length === 0) return false;
-    const [cardId, ...rest] = state.earnedQueue;
-    store.update({
-      earnedQueue: rest,
-      sheet: { kind: 'earned', cardId: cardId!, finish, ended },
-    });
-    return true;
-  };
-
-  const showEarnedOr = (
-    events: UnlockEvent[],
-    finish: 'none' | 'begin-again' | 'end-stub',
-    ended: RunEnd,
-    fallback: () => void,
-  ): void => {
-    const cards = events.filter((e) => e.kind === 'card').map((e) => e.id);
-    if (cards.length) {
-      store.update({ earnedQueue: [...store.get().earnedQueue, ...cards] });
-    }
-    if (!openNextEarned(finish, ended)) fallback();
-  };
-
-  const townEligible = (run: RunState, decreeId: string, townId: string): boolean => {
-    const t = run.towns[townId];
-    if (!t) return false;
-    if (decreeId === 'seal-roads') return !t.sealed;
-    if (decreeId === 'clean-streets') return !t.clean;
-    return true;
-  };
-
   const firstUnresolvedQuestion = (): string | null => {
     const state = store.get();
     const question = state.spec.mystery.questions.find(
@@ -123,49 +124,213 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     return question?.id ?? state.spec.mystery.questions[0]?.id ?? null;
   };
 
-  const actions: Record<string, (el: HTMLElement) => void> = {
-    'start-run': () => {
+  /**
+   * Materializes queued moments one at a time. Sheets/screens take over until
+   * closed; when the queue drains, a decree accepted from an advisor is
+   * issued for the new month. `fallback` names the screen to return to once
+   * everything drains (month chains come back to the map).
+   */
+  const advance = (fallback?: Screen): void => {
+    let guard = 0;
+    while (guard++ < 60) {
       const state = store.get();
+      if (state.sheet) return;
+      const [step, ...rest] = state.queue;
+      if (!step) break;
+      const spec = state.spec;
+      const run = state.run;
+
+      if (step.kind === 'earned') {
+        store.update({ queue: rest, sheet: { kind: 'earned', cardId: step.cardId } });
+        return;
+      }
+      if (step.kind === 'event') {
+        store.update({ queue: rest, sheet: { kind: 'event', eventId: step.eventId } });
+        return;
+      }
+      if (step.kind === 'advisor') {
+        if (!run) {
+          store.update({ queue: rest });
+          continue;
+        }
+        const advisor = spec.advisors.find((a) => a.id === step.advisorId);
+        if (!advisor) {
+          store.update({ queue: rest });
+          continue;
+        }
+        const line = advisorLine(spec, run, advisor, run.month);
+        const offer = advisorOffer(spec, run, advisor);
+        const events = grantAdvisor(spec, state.persistent, advisor.id, { month: run.month });
+        run.flags['adv:last'] = advisor.id;
+        run.flags[`advline:${advisor.id}:${line.index}`] = true;
+        const termEvents = markTermsSeen(spec, state.persistent, [line.text]);
+        markNew(events);
+        markNew(termEvents);
+        store.update({
+          queue: [...earnedSteps(events), ...rest],
+          sheet: { kind: 'advisor', advisorId: advisor.id, offer },
+          advisorPeek: { advisorId: advisor.id, text: line.text },
+        });
+        persist();
+        return;
+      }
+      if (step.kind === 'lens-reveal') {
+        store.update({ queue: rest, sheet: { kind: 'lens-reveal' } });
+        return;
+      }
+      if (step.kind === 'ending') {
+        store.update({ queue: rest, screen: 'ending', sheet: null, lensOpen: false });
+        persist();
+        return;
+      }
+      if (step.kind === 'reckoning') {
+        store.update({ queue: rest, screen: 'reckoning', sheet: null, lensOpen: false });
+        persist();
+        return;
+      }
+    }
+
+    const state = store.get();
+    if (state.sheet || state.queue.length) return;
+
+    if (state.run && !state.run.ended) {
+      const offer = applyPendingOffer(state.spec, state.run);
+      if (offer) {
+        addDecreeEntry(state.journal, state.run.month, offer.decreeId, offer.townId);
+        const events = grantDecree(state.spec, state.persistent, offer.decreeId, {
+          month: state.run.month,
+          town: offer.townId,
+        });
+        markNew(events);
+        const steps = earnedSteps(events);
+        persist();
+        if (steps.length) {
+          store.update({ queue: steps });
+          advance(fallback);
+          return;
+        }
+      }
+    }
+    if (state.pendingChronicle) {
+      markChronicleRead(state.persistent, state.pendingChronicle);
+      store.update({ screen: 'chronicles', chronicleId: state.pendingChronicle, pendingChronicle: null });
+      persist();
+      return;
+    }
+    if (fallback && state.screen !== fallback) {
+      store.update({ screen: fallback });
+    } else {
+      // Re-render even when nothing else changed (an accepted advisor decree
+      // mutates the run directly; the ledger must show it).
+      store.update({});
+    }
+    persist();
+  };
+
+  const actions: Record<string, (el: HTMLElement) => void> = {
+    'open-next': () => {
+      const state = store.get();
+      if (state.openingTitle) return;
+      const total = state.spec.opening.narration.length;
+      const next = state.openingLine + 1;
+      if (next >= total) {
+        store.update({ openingLine: total, openingTitle: true, openingStarted: true });
+      } else {
+        store.update({ openingLine: next, openingStarted: true });
+      }
+    },
+
+    'open-skip': () => {
+      const state = store.get();
+      store.update({
+        openingStarted: true,
+        openingLine: state.spec.opening.narration.length,
+        openingTitle: true,
+      });
+    },
+
+    'name-reroll': () => {
+      const state = store.get();
+      store.update({ namePage: (state.namePage + 1) % namePageCount(state.spec) });
+    },
+
+    'name-pick': (el) => {
+      const state = store.get();
+      const name = el.dataset.name ?? state.spec.opening.namePool[0] ?? 'Lorenzo';
       const seedParam = new URLSearchParams(window.location.search).get('seed');
       const seed = seedParam != null && seedParam !== '' ? Number(seedParam) : undefined;
       const run = createRun(state.spec, {
         seed: Number.isFinite(seed) ? seed : undefined,
+        stewardName: name,
         assistClues: assistCluesFor(state.spec, state.persistent),
       });
       if (!state.persistent.cluesFound.includes('c-galleys')) {
         state.persistent.cluesFound.push('c-galleys');
       }
-      grantOpening(state.spec, state.persistent);
+      const events = grantOpening(state.spec, state.persistent);
+      if (run) {
+        events.forEach((event) => {
+          run.flags[`new:${event.kind}:${event.id}`] = true;
+        });
+      }
       store.update({
         run,
         journal: createJournal(),
         screen: 'map',
-        ledger: 'ledger',
-        selectedTown: null,
-        selectedDecree: null,
         sheet: null,
-        boardQuestion: null,
-        codexTerm: null,
-        chronicleId: null,
-        chronicleQuiz: null,
-        earnedQueue: [],
+        queue: [],
+        pendingChronicle: null,
+        advisorPeek: null,
+        openingStarted: false,
+        openingLine: 0,
+        openingTitle: false,
+        namePage: 0,
+        ...clearRunUi(),
       });
       persist();
     },
 
+    'continue-run': () => {
+      const state = store.get();
+      if (!state.run) {
+        store.update({ openingStarted: true, openingLine: 0, openingTitle: false });
+        return;
+      }
+      store.update({ screen: 'map', sheet: null, ...clearRunUi() });
+      advance('map');
+      persist();
+    },
+
+    'new-game': () => {
+      store.update({ openingStarted: true, openingLine: 0, openingTitle: false, namePage: 0, sheet: null });
+    },
+
     nav: (el) => {
       const target = NAV_TARGETS[el.dataset.target ?? ''];
-      if (!target) return;
       const state = store.get();
+      if (el.dataset.target === 'lens') {
+        if (!state.persistent.lensUnlocked) return;
+        store.update({ screen: 'map', lensOpen: true, ledger: 'ledger', selectedTown: null });
+        return;
+      }
+      if (!target) return;
+      if (target === 'map' && state.run?.ended) {
+        store.update({ screen: 'reckoning', lensOpen: false });
+        return;
+      }
       if (target === 'board') {
-        store.update({ screen: 'board', boardQuestion: state.boardQuestion ?? firstUnresolvedQuestion() });
+        store.update({
+          screen: 'board',
+          boardQuestion: state.boardQuestion ?? firstUnresolvedQuestion(),
+          lensOpen: false,
+        });
         return;
       }
       if (target === 'chronicles') {
         const current =
           el.dataset.chronicle ?? state.chronicleId ?? state.persistent.chroniclesOpened[0] ?? null;
         if (current) markChronicleRead(state.persistent, current);
-        store.update({ screen: 'chronicles', chronicleId: current, chronicleQuiz: null });
+        store.update({ screen: 'chronicles', chronicleId: current, chronicleQuiz: null, lensOpen: false });
         persist();
         return;
       }
@@ -173,10 +338,11 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         store.update({
           screen: 'codex',
           codexTerm: state.codexTerm ?? state.persistent.codexSeen[0] ?? null,
+          lensOpen: false,
         });
         return;
       }
-      store.update({ screen: target });
+      store.update({ screen: target, lensOpen: false });
     },
 
     'board-question': (el) => {
@@ -196,15 +362,21 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
       const sheet = state.sheet;
       if (sheet?.kind !== 'verdict' || !state.run) return;
       solveQuestion(state.persistent, sheet.questionId);
+      state.run.flags[`solved:${sheet.questionId}`] = true;
       let events = grantQuestionSolved(state.spec, state.persistent, sheet.questionId, {
         month: state.run.month,
       });
-      if (allQuestionsSolved(state.spec, state.persistent)) {
+      const reveal = allQuestionsSolved(state.spec, state.persistent);
+      if (reveal) {
         events = [...events, ...grantLens(state.spec, state.persistent, { month: state.run.month })];
       }
-      store.update({ sheet: null });
-      showEarnedOr(events, 'none', null, () => undefined);
+      markNew(events);
+      const queue = reveal
+        ? [...earnedSteps(events), { kind: 'lens-reveal' as const }]
+        : earnedSteps(events);
+      store.update({ sheet: null, queue });
       persist();
+      advance();
     },
 
     'verdict-close': () => {
@@ -316,16 +488,50 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     },
 
     'earned-keep': () => {
+      store.update({ sheet: null });
+      advance();
+    },
+
+    'event-read': () => {
       const state = store.get();
       const sheet = state.sheet;
-      if (sheet?.kind !== 'earned') return;
+      if (sheet?.kind !== 'event') return;
+      const chronicle = state.spec.chronicles.find((c) => c.unlock === `event:${sheet.eventId}`);
+      store.update({ sheet: null, pendingChronicle: chronicle?.id ?? null });
+      advance('map');
+    },
+
+    'advisor-thanks': () => {
       store.update({ sheet: null });
-      if (!openNextEarned(sheet.finish, sheet.ended)) {
-        if (sheet.finish === 'begin-again') beginAgain();
-        else if (sheet.finish === 'end-stub') {
-          store.update({ sheet: { kind: 'end-stub', ended: sheet.ended } });
-        }
-      }
+      advance();
+    },
+
+    'advisor-take': () => {
+      const state = store.get();
+      const sheet = state.sheet;
+      const run = state.run;
+      if (sheet?.kind !== 'advisor' || !sheet.offer || !run) return;
+      run.flags['advoffer:id'] = sheet.offer.id;
+      if (sheet.offer.townId) run.flags['advoffer:town'] = sheet.offer.townId;
+      store.update({ sheet: null });
+      advance();
+      persist();
+    },
+
+    'lens-enter': () => {
+      store.update({ sheet: null, screen: 'map', lensOpen: true, ledger: 'ledger' });
+      persist();
+    },
+
+    'close-lens': () => {
+      store.update({ lensOpen: false });
+    },
+
+    'lens-layer': (el) => {
+      const state = store.get();
+      const layer = el.dataset.layer as keyof LensLayers;
+      if (!(layer in state.lensLayers)) return;
+      store.update({ lensLayers: { ...state.lensLayers, [layer]: !state.lensLayers[layer] } });
     },
 
     decree: (el) => {
@@ -376,7 +582,7 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         addDecreeEntry(state.journal, run.month, id);
         const events = grantDecree(state.spec, state.persistent, id, { month: run.month });
         store.update({});
-        showEarnedOr(events, 'none', null, () => undefined);
+        present(events);
         persist();
       }
     },
@@ -396,7 +602,7 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
           month: run.month,
           town: sheet.townId,
         });
-        showEarnedOr(events, 'none', null, () => undefined);
+        present(events);
       }
       persist();
     },
@@ -411,19 +617,24 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
 
     'flee-confirm': () => {
       const state = store.get();
-      if (!state.run) return;
-      issueDecree(state.run, 'flee');
-      const events = finalizeOnce(state.run);
+      const run = state.run;
+      if (!run) return;
+      issueDecree(run, 'flee');
+      const events = finalizeOnce(run);
+      markNew(events);
+      run.flags['shell:endMonth'] = String(run.month);
+      autoplayToEnd(run);
+      finalizeEpithet(state.spec, state.persistent, run);
       store.update({
         sheet: null,
         selectedDecree: null,
         selectedTown: null,
         ledger: 'ledger',
-      });
-      showEarnedOr(events, 'end-stub', 'fled', () => {
-        store.update({ sheet: { kind: 'end-stub', ended: 'fled' } });
+        lensOpen: false,
+        queue: [...earnedSteps(events), { kind: 'ending' }],
       });
       persist();
+      advance();
     },
 
     'end-month': () => {
@@ -447,6 +658,23 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         );
       }
 
+      const eventSteps: PendingStep[] = [];
+      for (const raw of report.events ?? []) {
+        const eventId = typeof raw === 'string' ? raw : raw.id;
+        const def = state.spec.scriptedEvents?.find((e) => e.id === eventId);
+        if (!def) continue;
+        unlocks.push(...grantEvent(state.spec, state.persistent, def.id, { month: report.month }));
+        unlocks.push(
+          ...markTermsSeen(state.spec, state.persistent, [
+            def.title,
+            ...def.paragraphs,
+            def.stewardAction,
+            def.footer,
+          ]),
+        );
+        eventSteps.push({ kind: 'event', eventId: def.id });
+      }
+
       const view = composeReport(state.spec, report, { previouslyFound });
       unlocks.push(
         ...markTermsSeen(state.spec, state.persistent, [
@@ -459,15 +687,18 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         ...grantTownBurned(state.spec, state.persistent, run, { month: report.month }),
       );
       if (run.ended) unlocks.push(...finalizeOnce(run));
+      markNew(unlocks);
 
-      const cards = unlocks.filter((e) => e.kind === 'card').map((e) => e.id);
-      if (cards.length) {
-        store.update({ earnedQueue: [...store.get().earnedQueue, ...cards] });
-      }
+      const queue: PendingStep[] = [...earnedSteps(unlocks), ...eventSteps];
+      const advisor = !run.ended ? advisorForMonth(state.spec, run, report.month) : null;
+      if (advisor) queue.push({ kind: 'advisor', advisorId: advisor.id });
+
       store.update({
         sheet: { kind: 'report', view, ended: run.ended, unlocks },
+        queue,
         selectedTown: null,
         ledger: 'ledger',
+        lensOpen: false,
       });
       persist();
     },
@@ -475,14 +706,41 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     'report-next': () => {
       const state = store.get();
       const sheet = state.sheet;
+      const run = state.run;
       if (sheet?.kind !== 'report') return;
       store.update({ sheet: null });
-      const finish = sheet.ended ? 'begin-again' : 'none';
-      if (!openNextEarned(finish, sheet.ended) && sheet.ended) beginAgain();
+      if (sheet.ended && run) {
+        if (run.flags['shell:endMonth'] == null) {
+          run.flags['shell:endMonth'] = String(Math.max(0, run.month - 1));
+        }
+        autoplayToEnd(run);
+        finalizeEpithet(state.spec, state.persistent, run);
+        const queue = [...store.get().queue];
+        queue.push(sheet.ended === 'normal' ? { kind: 'reckoning' } : { kind: 'ending' });
+        store.update({ queue, advisorPeek: null });
+        persist();
+      }
+      advance('map');
     },
 
-    'end-begin-again': () => {
+    'ending-reckoning': () => {
+      store.update({ screen: 'reckoning' });
+      persist();
+    },
+
+    'ending-again': () => {
       beginAgain();
+    },
+
+    'reckon-again': () => {
+      beginAgain();
+    },
+
+    'reckon-chronicle': () => {
+      const state = store.get();
+      markChronicleRead(state.persistent, 'great-mortality');
+      store.update({ screen: 'chronicles', chronicleId: 'great-mortality', chronicleQuiz: null });
+      persist();
     },
 
     pause: () => {
@@ -508,14 +766,14 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         journal: createJournal(),
         screen: 'start',
         sheet: null,
-        ledger: 'ledger',
-        selectedTown: null,
-        selectedDecree: null,
-        boardQuestion: null,
-        codexTerm: null,
-        chronicleId: null,
-        chronicleQuiz: null,
-        earnedQueue: [],
+        queue: [],
+        pendingChronicle: null,
+        advisorPeek: null,
+        openingStarted: false,
+        openingLine: 0,
+        openingTitle: false,
+        namePage: 0,
+        ...clearRunUi(),
       });
       persist();
     },
@@ -529,10 +787,19 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     },
   };
 
+  const townEligible = (run: RunState, decreeId: string, townId: string): boolean => {
+    const t = run.towns[townId];
+    if (!t) return false;
+    if (decreeId === 'seal-roads') return !t.sealed;
+    if (decreeId === 'clean-streets') return !t.clean;
+    return true;
+  };
+
   const townClick = (townId: string): void => {
     const state = store.get();
     const run = state.run;
     if (!run) return;
+    if (state.lensOpen) return;
     if (state.selectedDecree) {
       if (!townEligible(run, state.selectedDecree, townId)) return;
       store.update({ sheet: { kind: 'confirm-issue', decreeId: state.selectedDecree, townId } });

@@ -1,9 +1,9 @@
 import { fillClueText } from '../app/journal';
 import { earnedCaption } from '../app/progress';
 import type { AppState } from '../app/store';
-import { fillPlaceholders } from '../spec/markup';
 import type { CodexEntry } from '../spec/types';
 import { esc, renderCopy } from '../shell/dom';
+import { calendarMonth, calendarYear, monthName, startYearFromSpec } from './calendar';
 import { codexEntryHtml } from './screens/codex';
 
 export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>): string {
@@ -127,7 +127,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
         <footer class="report-foot">
           <p class="report-footer">${renderCopy(view.footer, codex)}</p>
           <button class="primary report-next" data-action="report-next" data-testid="report-next">${
-            sheet.ended ? 'Begin again' : esc(view.nextLabel)
+            sheet.ended ? 'On to the reckoning' : esc(view.nextLabel)
           }</button>
         </footer>
       </div>`;
@@ -272,18 +272,98 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
       </div>`;
   }
 
-  if (sheet.kind === 'end-stub' && run) {
-    const ending = sheet.ended === 'fled' ? spec.endings.fled : spec.endings.overthrown;
-    const title = fillPlaceholders(ending.title, { steward: run.steward });
+  if (sheet.kind === 'event' && run) {
+    const def = spec.scriptedEvents?.find((e) => e.id === sheet.eventId);
+    if (!def) return '';
+    const cal = calendarMonth(spec.sim.startCalendarMonth, run.month - 1);
+    const year = calendarYear(spec.sim.startCalendarMonth, run.month - 1, startYearFromSpec(spec));
+    const label = `${def.place.toUpperCase()} · ${monthName(cal).toUpperCase()} ${year}`;
     return `
-      <div class="scrim"></div>
-      <div class="sheet sheet-small" data-testid="sheet-end" role="dialog" aria-modal="true">
-        <h2>${esc(title)}</h2>
-        <p class="sheet-body">${esc(ending.body)}</p>
-        <p class="sheet-meta">${esc(ending.footnote)}</p>
-        <p class="sheet-meta">The full reckoning screen arrives with Milestone 4.</p>
-        <div class="sheet-actions">
-          <button class="primary" data-action="end-begin-again">Begin again</button>
+      <div class="event-ground" data-testid="sheet-event">
+        <div class="sheet sheet-event" role="dialog" aria-modal="true">
+          <p class="label">${esc(label)}</p>
+          <h2>${esc(def.title)}</h2>
+          ${def.paragraphs.map((p) => `<p class="event-p">${renderCopy(p, codex)}</p>`).join('')}
+          <p class="event-action">${renderCopy(def.stewardAction, codex)}</p>
+          <p class="event-footer">${renderCopy(def.footer, codex)}</p>
+          <div class="sheet-actions sheet-actions-center">
+            <button class="primary ink" data-action="event-read" data-testid="event-read">${esc(def.button)}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (sheet.kind === 'advisor' && run) {
+    const advisor = spec.advisors.find((a) => a.id === sheet.advisorId);
+    if (!advisor) return '';
+    const line =
+      state.advisorPeek && state.advisorPeek.advisorId === advisor.id ? state.advisorPeek.text : '';
+    const first = line.slice(0, 1);
+    const rest = line.slice(1);
+    const offer = sheet.offer;
+    const offerDecree = offer ? spec.decrees.find((d) => d.id === offer.decreeId) : undefined;
+    const offerTown = offer?.townId ? spec.towns.find((t) => t.id === offer.townId) : undefined;
+    const offerHtml = offer
+      ? `
+        <button class="advisor-offer" data-action="advisor-take" data-testid="advisor-take">
+          <span class="advisor-offer-name">${
+            offer.kind === 'lift'
+              ? `Lift “${esc(offerDecree?.name ?? offer.decreeId)}”`
+              : `${esc(offerDecree?.name ?? offer.decreeId)}${
+                  offerTown ? ` at ${esc(offerTown.name)}` : ''
+                }`
+          }</span>
+          ${offer.kind === 'decree' ? `<span class="advisor-offer-cost">${offer.cost} ƒ</span>` : ''}
+        </button>`
+      : '';
+    const footnote = offer
+      ? offer.kind === 'decree'
+        ? 'He offers a decree. Taking it costs a decree slot, as any other would.'
+        : 'He asks you to lift a decree. That costs nothing and uses no decree slot.'
+      : '';
+    return `
+      <div class="advisor-ground" data-testid="sheet-advisor">
+        <div class="sheet sheet-advisor" role="dialog" aria-modal="true">
+          <div class="advisor-body">
+            <div class="advisor-portrait">
+              <span class="placeholder">illuminated portrait · ${esc(advisor.name)}</span>
+              <span class="advisor-name-label">${esc(advisor.name.toUpperCase())}</span>
+            </div>
+            <div class="advisor-speech">
+              <p class="advisor-line"><span class="dropcap">${esc(first)}</span>${renderCopy(rest, codex)}</p>
+              ${footnote ? `<p class="advisor-footnote">${esc(footnote)}</p>` : ''}
+              <div class="advisor-offer-row">
+                ${offerHtml}
+                <button class="quiet" data-action="advisor-thanks" data-testid="advisor-thanks">Thank him, and no</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="advisor-caption">Advisors speak sincerely. Whether they are right is for you to find out.</p>
+      </div>`;
+  }
+
+  if (sheet.kind === 'lens-reveal') {
+    const lens = spec.mystery.lensReveal;
+    const first = lens.title.slice(0, 1);
+    const rest = lens.title.slice(1);
+    return `
+      <div class="lens-ground" data-testid="sheet-lens-reveal">
+        <div class="sheet sheet-lens" role="dialog" aria-modal="true">
+          <p class="label">${esc(lens.kicker.toUpperCase())}</p>
+          <span class="lens-glyph" aria-hidden="true">
+            <svg viewBox="0 0 120 120">
+              <circle cx="52" cy="52" r="42" fill="#f7ecd6" stroke="#b8902e" stroke-width="3"></circle>
+              <circle cx="52" cy="52" r="30" fill="none" stroke="#2a1c10" stroke-width="2"></circle>
+              <circle cx="52" cy="52" r="10" fill="#8b2e2e"></circle>
+              <path d="M82 82 L108 108" stroke="#2a1c10" stroke-width="8" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <h2><span class="dropcap">${esc(first)}</span>${esc(rest)}</h2>
+          <p class="lens-body">${esc(lens.body)}</p>
+          <div class="lens-chips">${lens.chips.map((chip) => `<span class="lens-chip">${esc(chip)}</span>`).join('')}</div>
+          <button class="primary" data-action="lens-enter" data-testid="lens-enter">${esc(lens.button)}</button>
+          <p class="lens-footnote">${esc(lens.footnote)}</p>
         </div>
       </div>`;
   }

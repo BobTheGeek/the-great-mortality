@@ -7,7 +7,8 @@ import { boardHtml, mountBoardThreads } from '../skin/screens/board';
 import { cardsHtml } from '../skin/screens/cards';
 import { chroniclesHtml } from '../skin/screens/chronicles';
 import { codexHtml } from '../skin/screens/codex';
-import { mountMapShell, renderHeading, renderLedger } from '../skin/screens/map';
+import { renderEnding, renderReckoning } from '../skin/screens/end';
+import { mountMapShell, renderHeading, renderLedger, renderPeek } from '../skin/screens/map';
 import { renderStart } from '../skin/screens/start';
 import { tabsHtml } from '../skin/screens/tabs';
 import { renderSheetHtml } from '../skin/sheets';
@@ -92,13 +93,16 @@ export function createApp(deps: AppDeps): { render(): void } {
       run: state.run!,
       selectedDecree: state.selectedDecree,
       focusTown: state.ledger === 'town' ? state.selectedTown : null,
+      lens: { open: state.lensOpen, layers: state.lensLayers },
     });
+    renderPeek(root!, state, deps.codex);
     const texts: string[] = [];
     if (state.ledger === 'town' && state.selectedTown) {
       texts.push(
         ...latestForTown(state.spec, state.journal, state.selectedTown).map((line) => line.text),
       );
     }
+    if (state.advisorPeek) texts.push(state.advisorPeek.text);
     if (texts.length) deps.flow.markSeen(texts);
   }
 
@@ -108,10 +112,31 @@ export function createApp(deps: AppDeps): { render(): void } {
       mapController = null;
       mapHost = null;
       renderStart(root!, state, deps.codex);
+      renderSheetHost(state);
+      if (state.screen === 'start' && state.openingTitle) {
+        deps.flow.markSeen([state.spec.opening.titleCard.body]);
+      }
       return;
     }
-    if (state.screen === 'map') renderMap(state);
-    else renderReference(state);
+    if (state.screen === 'map') {
+      renderMap(state);
+      return;
+    }
+    if (state.screen === 'ending') {
+      mapController = null;
+      mapHost = null;
+      renderEnding(root!, state);
+      renderSheetHost(state);
+      return;
+    }
+    if (state.screen === 'reckoning') {
+      mapController = null;
+      mapHost = null;
+      renderReckoning(root!, state);
+      renderSheetHost(state);
+      return;
+    }
+    renderReference(state);
   }
 
   return { render };

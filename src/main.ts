@@ -2,6 +2,7 @@ import './styles/tokens.css';
 import './styles/shell.css';
 import './styles/mortality.css';
 import './styles/mystery.css';
+import './styles/story.css';
 import { createFlow } from './app/flow';
 import { createStore } from './app/store';
 import { hydrateRun } from './engine/serialize';
@@ -52,7 +53,7 @@ async function boot(): Promise<void> {
     persistent,
     run,
     journal,
-    screen: run ? 'map' : 'start',
+    screen: 'start',
     ledger: 'ledger',
     selectedTown: null,
     selectedDecree: null,
@@ -61,7 +62,15 @@ async function boot(): Promise<void> {
     codexTerm: null,
     chronicleId: null,
     chronicleQuiz: null,
-    earnedQueue: [],
+    queue: [],
+    pendingChronicle: null,
+    advisorPeek: null,
+    openingStarted: false,
+    openingLine: 0,
+    openingTitle: false,
+    namePage: 0,
+    lensOpen: false,
+    lensLayers: { rats: true, fleas: true, forms: false },
   });
   const flow = createFlow({ store, saves });
   const codex = new Map(spec.codex.map((entry) => [entry.id, entry]));
