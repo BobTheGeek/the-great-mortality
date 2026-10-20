@@ -122,7 +122,7 @@ test.describe('milestone screenshots', () => {
     test(`captures the core loop at ${size.name}`, async ({ page }) => {
       await page.setViewportSize({ width: size.width, height: size.height });
       mkdirSync('screenshots/milestone-2', { recursive: true });
-      await page.goto('/');
+      await page.goto('/?seed=1007');
       await page.getByTestId('start-run').click();
       await page.getByTestId('decree-hold-ships').click();
       await page.screenshot({ path: `screenshots/milestone-2/${size.name}-map.png` });
