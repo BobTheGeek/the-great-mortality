@@ -15,9 +15,18 @@ function trackProblems(page: Page): string[] {
 async function settle(page: Page): Promise<void> {
   await page.evaluate(() =>
     Promise.all(
-      document.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming()?.iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
     ),
   );
+}
+
+async function enterGame(page: Page, url = '/'): Promise<void> {
+  await page.goto(url);
+  await page.getByTestId('opening-skip').click();
+  await page.getByTestId('name-0').click();
 }
 
 test.describe('core loop', () => {
@@ -25,7 +34,11 @@ test.describe('core loop', () => {
     const problems = trackProblems(page);
     await page.goto('/');
     await expect(page.getByTestId('start-screen')).toBeVisible();
-    await page.getByTestId('start-run').click();
+    await expect(page.getByTestId('opening-line')).toHaveText('Twelve galleys from the Black Sea.');
+    await page.getByTestId('opening-next').click();
+    await expect(page.getByTestId('opening-line')).toHaveText('Half the crews are dead at their oars.');
+    await page.getByTestId('opening-skip').click();
+    await page.getByTestId('name-0').click();
     await expect(page.getByTestId('map-heading')).toHaveText('November 1347');
     await expect(page.getByTestId('map-subheading')).toContainText('All Saints · month 1 of 18');
     await expect(page.getByTestId('treasury')).toContainText('3,000');
@@ -37,8 +50,7 @@ test.describe('core loop', () => {
 
   test('issues a region decree, lifts it, and spends decree slots', async ({ page }) => {
     const problems = trackProblems(page);
-    await page.goto('/');
-    await page.getByTestId('start-run').click();
+    await enterGame(page);
 
     const holdShips = page.getByTestId('decree-hold-ships');
     await holdShips.click();
@@ -54,8 +66,7 @@ test.describe('core loop', () => {
 
   test('issues a town decree through selection, the map, and the confirm sheet', async ({ page }) => {
     const problems = trackProblems(page);
-    await page.goto('/');
-    await page.getByTestId('start-run').click();
+    await enterGame(page);
 
     await page.getByTestId('decree-seal-roads').click();
     await expect(page.getByTestId('decree-seal-roads')).toContainText('Now tap a town on the map.');
@@ -70,8 +81,7 @@ test.describe('core loop', () => {
 
   test('ends the month, shows the report, and returns to a new month', async ({ page }) => {
     const problems = trackProblems(page);
-    await page.goto('/');
-    await page.getByTestId('start-run').click();
+    await enterGame(page);
 
     await page.getByTestId('end-month').click();
     await expect(page.getByTestId('sheet-report')).toBeVisible();
@@ -80,14 +90,17 @@ test.describe('core loop', () => {
     await expect(page.getByTestId('sheet-report')).toContainText('November, the year of our Lord 1347');
     await page.getByTestId('report-next').click();
     await expect(page.getByTestId('sheet-report')).toBeHidden();
+    await expect(page.getByTestId('sheet-advisor')).toContainText('THE MERCHANT');
+    await page.getByTestId('advisor-thanks').click();
+    await expect(page.getByTestId('sheet-advisor')).toBeHidden();
     await expect(page.getByTestId('map-heading')).toHaveText('December 1347');
+    await expect(page.getByTestId('advisor-peek')).toContainText('THE MERCHANT');
     expect(problems).toEqual([]);
   });
 
   test('opens a town detail and returns to the ledger', async ({ page }) => {
     const problems = trackProblems(page);
-    await page.goto('/');
-    await page.getByTestId('start-run').click();
+    await enterGame(page);
 
     await page.locator('#town-santa-lucia').click();
     await expect(page.getByTestId('town-detail')).toBeVisible();
@@ -103,8 +116,7 @@ test.describe('core loop', () => {
 
   test('pauses the ledger', async ({ page }) => {
     const problems = trackProblems(page);
-    await page.goto('/');
-    await page.getByTestId('start-run').click();
+    await enterGame(page);
 
     await page.getByTestId('pause').click();
     await expect(page.getByTestId('sheet-paused')).toBeVisible();
@@ -122,8 +134,7 @@ test.describe('milestone screenshots', () => {
     test(`captures the core loop at ${size.name}`, async ({ page }) => {
       await page.setViewportSize({ width: size.width, height: size.height });
       mkdirSync('screenshots/milestone-2', { recursive: true });
-      await page.goto('/?seed=1007');
-      await page.getByTestId('start-run').click();
+      await enterGame(page, '/?seed=1007');
       await page.getByTestId('decree-hold-ships').click();
       await page.screenshot({ path: `screenshots/milestone-2/${size.name}-map.png` });
 
@@ -132,6 +143,8 @@ test.describe('milestone screenshots', () => {
       await settle(page);
       await page.screenshot({ path: `screenshots/milestone-2/${size.name}-report.png` });
       await page.getByTestId('report-next').click();
+      await expect(page.getByTestId('sheet-advisor')).toBeVisible();
+      await page.getByTestId('advisor-thanks').click();
       await settle(page);
 
       await page.locator('#town-portoreale').click();

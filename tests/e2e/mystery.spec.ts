@@ -15,14 +15,18 @@ function trackProblems(page: Page): string[] {
 async function settle(page: Page): Promise<void> {
   await page.evaluate(() =>
     Promise.all(
-      document.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming()?.iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
     ),
   );
 }
 
 async function startSeeded(page: Page, seed = 1000): Promise<void> {
   await page.goto(`/?seed=${seed}`);
-  await page.getByTestId('start-run').click();
+  await page.getByTestId('opening-skip').click();
+  await page.getByTestId('name-0').click();
 }
 
 test.describe('the mystery', () => {
@@ -60,6 +64,10 @@ test.describe('the mystery', () => {
     await expect(page.getByTestId('earned-moment')).toContainText('Quarantine is a modern idea');
     await expect(page.getByTestId('earned-moment')).toContainText('Earned in November 1347');
     await page.getByTestId('earned-keep').click();
+
+    // The Merchant introduces himself after the first report.
+    await expect(page.getByTestId('sheet-advisor')).toBeVisible();
+    await page.getByTestId('advisor-thanks').click();
 
     await page.getByTestId('nav-evidence').click();
     await page.getByTestId('board-q-q1').click();
@@ -142,6 +150,8 @@ test.describe('the mystery', () => {
       await page.getByTestId('report-next').click();
       await expect(page.getByTestId('earned-moment')).toBeVisible();
       await page.getByTestId('earned-keep').click();
+      await expect(page.getByTestId('sheet-advisor')).toBeVisible();
+      await page.getByTestId('advisor-thanks').click();
 
       await page.getByTestId('nav-evidence').click();
       await settle(page);
