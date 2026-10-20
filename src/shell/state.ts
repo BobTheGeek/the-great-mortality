@@ -25,6 +25,7 @@ export interface PersistentState {
   lensUnlocked: boolean;
   assistMissCounts: Record<string, number>;
   a2hsDismissed: boolean;
+  a2hsWarned: boolean;
   runsCompleted: number;
 }
 
@@ -44,6 +45,7 @@ export function createPersistentState(): PersistentState {
     lensUnlocked: false,
     assistMissCounts: {},
     a2hsDismissed: false,
+    a2hsWarned: false,
     runsCompleted: 0,
   };
 }

@@ -4,10 +4,109 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#3a2a1c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Great Mortality" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
     <title>The Great Mortality</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #3a2a1c;
+      }
+      .splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: radial-gradient(ellipse at 40% 40%, #efe3c9 0%, #e3d2ad 65%, #cdb686 100%);
+        color: #4a2f1d;
+        font-family: 'Iowan Old Style', Palatino, Georgia, serif;
+      }
+      .splash-seal {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 35%, #b04444, #8b2e2e 60%, #5e1d1d);
+        box-shadow:
+          inset 0 0 0 3px rgba(247, 236, 214, 0.35),
+          inset 0 0 0 5px rgba(94, 29, 29, 0.8),
+          2px 3px 0 rgba(74, 47, 29, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .splash-seal svg {
+        width: 54px;
+        height: 54px;
+      }
+      .splash-kicker {
+        margin: 6px 0 0;
+        font-family: 'Avenir Next', Avenir, system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 4px;
+      }
+      .splash-sub {
+        margin: 0;
+        font-style: italic;
+        opacity: 0.8;
+      }
+      .splash-bar {
+        width: 120px;
+        height: 4px;
+        background: rgba(74, 47, 29, 0.25);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .splash-bar span {
+        display: block;
+        width: 40%;
+        height: 100%;
+        background: #8b2e2e;
+        animation: splash-slide 1.1s ease-in-out infinite;
+      }
+      @keyframes splash-slide {
+        0% {
+          transform: translateX(-120%);
+        }
+        100% {
+          transform: translateX(300%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .splash-bar span {
+          animation: none;
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
+    <div class="splash" id="splash" data-testid="splash">
+      <span class="splash-seal">
+        <svg viewBox="0 0 54 54" aria-hidden="true">
+          <g fill="none" stroke="#f7ecd6" stroke-width="2.6" stroke-linecap="round">
+            <path d="M8 36 Q27 46 46 36" />
+            <path d="M27 36 V14" />
+            <path d="M27 14 L40 21 L27 24 Z" fill="#f7ecd6" />
+          </g>
+        </svg>
+      </span>
+      <p class="splash-kicker">THE GREAT MORTALITY</p>
+      <p class="splash-sub">Opening the ledger…</p>
+      <span class="splash-bar"><span></span></span>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
