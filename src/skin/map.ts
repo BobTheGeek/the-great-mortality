@@ -40,7 +40,10 @@ export function createMapController(host: HTMLElement): MapController {
   host.innerHTML = mapSvgRaw;
   const svg = host.querySelector('svg')!;
   svg.classList.add('map-svg');
-  svg.setAttribute('viewBox', '130 0 1100 820');
+  // Recentered right of the asset's 130 so Fontenera's label stays inside the
+  // slice crop at the reference sizes; the galley marker then moves in from
+  // the left edge to stay visible too.
+  svg.setAttribute('viewBox', '170 0 1100 820');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
   svg.setAttribute('aria-label', 'Map of the six towns');
 
@@ -184,6 +187,7 @@ export function createMapController(host: HTMLElement): MapController {
 
     const galley = svg.querySelector<SVGGElement>('#marker-galley-offshore');
     if (galley) {
+      galley.setAttribute('transform', 'translate(440 660)');
       galley.style.opacity = u.run.shipsHeld && !u.run.portClosed ? '1' : '0';
     }
     chain.style.opacity = u.run.portClosed ? '1' : '0';

@@ -43,7 +43,6 @@ function nightScene(dimmed: boolean): string {
             <path d="M0 0 V-58" stroke="#0b0c10" stroke-width="3"></path>
             <path d="M0 -58 L34 -40 L0 -46 Z" fill="#0b0c10"></path>
             <path d="M-34 8 L-34 22 M-17 12 L-17 26 M0 14 L0 28 M17 12 L17 26 M34 8 L34 22" stroke="#0b0c10" stroke-width="2.4" stroke-linecap="round"></path>
-            <circle cx="${-10 + index * 8}" cy="-4" r="2.6" fill="#b8902e"></circle>
           </g>
         </g>`,
     )
@@ -56,8 +55,11 @@ function nightScene(dimmed: boolean): string {
         </pattern>
       </defs>
       <circle cx="905" cy="138" r="58" fill="#f1e6cf" opacity="0.92"></circle>
-      <circle cx="925" cy="126" r="54" fill="#1f2129" opacity="0.92"></circle>
+      <circle cx="925" cy="126" r="54" fill="#1d1f26"></circle>
       <path d="M0 470 V404 L34 404 L34 372 L62 372 L62 404 L120 404 L120 356 L150 356 L150 404 L214 404 L214 384 L262 384 L262 404 L318 404 L318 330 L340 330 L340 404 L420 404 L420 368 L470 368 L470 404 L528 404 L528 392 L590 392 L590 404 L648 404 L648 344 L676 344 L676 404 L744 404 L744 378 L800 378 L800 404 L860 404 L860 362 L900 362 L900 404 L968 404 L968 388 L1030 388 L1030 404 L1100 404 L1100 370 L1132 370 L1132 404 L1180 404 L1180 470 Z" fill="#0b0c10"></path>
+      <circle cx="329" cy="324" r="3" fill="#b8902e"></circle>
+      <circle cx="662" cy="338" r="3" fill="#b8902e"></circle>
+      <circle cx="880" cy="356" r="3" fill="#b8902e"></circle>
       <line x1="0" y1="470" x2="1180" y2="470" stroke="#0b0c10" stroke-width="2"></line>
       <rect x="0" y="471" width="1180" height="349" fill="url(#sea-hatch)"></rect>
       <g class="galleys">${galleys}</g>
@@ -147,17 +149,22 @@ function titleCard(state: AppState, codex: Map<string, CodexEntry>): string {
 function openingLines(state: AppState): string {
   const narration = state.spec.opening.narration;
   const line = Math.min(state.openingLine, narration.length - 1);
+  const prev = state.openingLine > 0 ? narration[state.openingLine - 1] : '';
   const next = state.openingLine + 1 < narration.length ? narration[state.openingLine + 1]! : '';
+  const lineHtml = (text: string, cls: string, testid?: string) =>
+    text
+      ? `<span class="open-line ${cls}"${testid ? ` data-testid="${testid}"` : ''}>${esc(text)}</span>`
+      : '';
   return `
     <div class="app app-start" data-testid="start-screen">
       <button class="opening-tap" data-action="open-next" data-testid="opening-next" aria-label="Continue">
         ${nightScene(false)}
         <span class="open-label">${esc(state.spec.opening.label.toUpperCase())}</span>
-        <span class="open-hint">Tap to continue · <span class="open-skip" data-action="open-skip" data-testid="opening-skip">Skip</span></span>
-        ${progressDots(state)}
+        <span class="open-hint">${progressDots(state)} Tap to continue · <span class="open-skip" data-action="open-skip" data-testid="opening-skip">Skip</span></span>
         <span class="open-lines">
-          <span class="open-line current" data-testid="opening-line">${esc(narration[line] ?? '')}</span>
-          ${next ? `<span class="open-line next">${esc(next)}</span>` : ''}
+          ${lineHtml(prev, 'prev')}
+          ${lineHtml(narration[line] ?? '', 'current', 'opening-line')}
+          ${lineHtml(next, 'next')}
         </span>
       </button>
       ${a2hsHtml(state)}

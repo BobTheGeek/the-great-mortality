@@ -99,7 +99,11 @@ export function renderReckoning(root: HTMLElement, state: AppState): void {
             </div>
             <h3 class="section-label">Town by town · surviving</h3>
             <ul class="reckon-towns">${bars}</ul>
-            <p class="reckon-note">Red line: the historical loss.</p>
+            <p class="reckon-note">Red line: the historical loss.${
+              view.towns.find((t) => t.id === state.spec.sim.isolatedTown)?.spared
+                ? ' Fontenera was spared. Not one cart climbed the footpath.'
+                : ''
+            }</p>
             <div class="reckon-mystery">
               <span class="label">The mystery</span>
               <span class="mystery-discs">${discs(state)}</span>

@@ -46,6 +46,15 @@ export function cardsHtml(state: AppState, _codex: Map<string, CodexEntry>): str
           <span class="cards-hint">Tap a card to turn it over. Locked cards are earned in play.</span>
         </div>
         <div class="cards-grid" data-testid="cards-grid">${cards}</div>
+        ${
+          p.cardsEarned.length === 0
+            ? `
+        <div class="cards-empty" data-testid="cards-empty">
+          <p class="cards-empty-title">Eight myths, all sealed.</p>
+          <p class="cards-empty-note">Each one breaks open when the game proves it wrong, or half right.</p>
+        </div>`
+            : ''
+        }
       </section>
     </div>`;
 }

@@ -102,6 +102,21 @@ export function boardHtml(state: AppState, codex: Map<string, CodexEntry>): stri
   const selectedId = state.boardQuestion ?? spec.mystery.questions[0]!.id;
   const q = spec.mystery.questions.find((x) => x.id === selectedId) ?? spec.mystery.questions[0]!;
   const found = state.persistent.cluesFound.length;
+  const right =
+    found === 0
+      ? `
+        <div class="board-empty" data-testid="board-empty">
+          <div class="board-empty-frame"><span class="scrap-pin"></span></div>
+          <h2 class="board-empty-title">The board is bare.</h2>
+          <p class="board-empty-note">Clues are pinned here as the months pass. The four questions are already waiting on the left.</p>
+        </div>`
+      : `
+        <div class="board-head">
+          <h2>Theories for Question ${q.numeral}</h2>
+          <span class="board-found">clues below · ${found} of ${spec.mystery.clues.length} found</span>
+        </div>
+        ${rightPane(state, q, codex)}
+        ${scrapsHtml(state, q, codex)}`;
   return `
     <div class="spread board-spread">
       <section class="leaf leaf-left board-left">
@@ -113,14 +128,7 @@ export function boardHtml(state: AppState, codex: Map<string, CodexEntry>): stri
         <p class="board-foot">Solve all four to unseal the Physician's Lens.</p>
       </section>
       <div class="spine"></div>
-      <section class="leaf leaf-right board-right">
-        <div class="board-head">
-          <h2>Theories for Question ${q.numeral}</h2>
-          <span class="board-found">clues below · ${found} of ${spec.mystery.clues.length} found</span>
-        </div>
-        ${rightPane(state, q, codex)}
-        ${scrapsHtml(state, q, codex)}
-      </section>
+      <section class="leaf leaf-right board-right">${right}</section>
     </div>`;
 }
 

@@ -137,14 +137,19 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
     const question = spec.mystery.questions.find((q) => q.id === sheet.questionId);
     if (!question) return '';
     const verdict = sheet.verdict;
+    const theory = question.theories.find((t) => t.id === sheet.theoryId);
+    const verdictHead = `
+        <p class="label verdict-kicker">Question ${question.numeral}</p>
+        ${theory ? `<p class="verdict-theory">${esc(theory.text)}</p>` : ''}`;
     if (verdict.state === 'solved') {
       return `
         <div class="scrim" data-action="verdict-close"></div>
         <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+          ${verdictHead}
           <span class="stamp-wax"><span class="stamp-word">Solved</span><span class="stamp-numeral">${question.numeral}</span></span>
           <p class="verdict-summary">${renderCopy(verdict.summary ?? '', codex)}</p>
           <div class="sheet-actions sheet-actions-center">
-            <button class="primary" data-action="verdict-pin" data-testid="verdict-pin">${esc(
+            <button class="primary ink" data-action="verdict-pin" data-testid="verdict-pin">${esc(
               spec.mystery.verdicts.solved.button,
             )}</button>
           </div>
@@ -154,8 +159,9 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
       return `
         <div class="scrim" data-action="verdict-close"></div>
         <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+          ${verdictHead}
           <span class="stamp-ring stamp-notyet"><span>Not yet</span><span class="stamp-q">?</span></span>
-          <p class="verdict-text">${esc(spec.mystery.verdicts.notYet.text)}</p>
+          <p class="verdict-text verdict-quote">${esc(spec.mystery.verdicts.notYet.text)}</p>
           <p class="verdict-hint">${esc(verdict.hint ?? '')}</p>
           <div class="sheet-actions sheet-actions-center">
             <button class="quiet" data-action="verdict-close" data-testid="verdict-close">${esc(
@@ -177,6 +183,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
     return `
       <div class="scrim" data-action="verdict-close"></div>
       <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+        ${verdictHead}
         <span class="stamp-ring stamp-hardno"><span>The clues</span><span>say no</span></span>
         <p class="verdict-text">${esc(lead ?? '')}</p>
         ${clueBlock}
@@ -401,8 +408,8 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
           <h2>${esc(def.title)}</h2>
           ${def.paragraphs.map((p) => `<p class="event-p">${renderCopy(p, codex)}</p>`).join('')}
           <p class="event-action">${renderCopy(def.stewardAction, codex)}</p>
-          <p class="event-footer">${renderCopy(def.footer, codex)}</p>
-          <div class="sheet-actions sheet-actions-center">
+          <div class="event-foot-row">
+            <p class="event-footer">${renderCopy(def.footer, codex)}</p>
             <button class="primary ink" data-action="event-read" data-testid="event-read">${esc(def.button)}</button>
           </div>
         </div>

@@ -70,7 +70,8 @@
   top: 24px;
   font-family: var(--font-sans);
   font-size: 12px;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   opacity: 0.75;
 }
 
@@ -80,11 +81,11 @@
 }
 
 .open-dots {
-  position: absolute;
-  right: 26px;
-  top: 46px;
   display: inline-flex;
   gap: 8px;
+  vertical-align: middle;
+  margin-right: 10px;
+  transform: translateY(-1px);
 }
 
 .open-dot {
@@ -442,6 +443,8 @@
 
 .advisor-footnote {
   margin: 0 0 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(74, 47, 29, 0.35);
   font-size: 15px;
   font-style: italic;
   opacity: 0.85;
@@ -583,6 +586,18 @@
   opacity: 0.9;
 }
 
+.event-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.event-foot-row .event-footer {
+  margin: 0;
+}
+
 .primary.ink {
   background: var(--ink-deep);
   min-width: 200px;
@@ -653,12 +668,13 @@
   min-height: 36px;
   padding: 4px 14px;
   border: 1.5px solid var(--ink);
-  border-radius: 18px;
+  border-radius: 4px;
   font-size: 15px;
 }
 
 .sheet-lens .primary {
-  min-width: 260px;
+  width: 100%;
+  max-width: 560px;
   min-height: 62px;
 }
 
@@ -866,6 +882,13 @@
   flex-wrap: wrap;
   justify-content: center;
   margin: 8px 0;
+  padding: 12px 0;
+  border-top: 1px solid rgba(74, 47, 29, 0.35);
+  border-bottom: 1px solid rgba(74, 47, 29, 0.35);
+}
+
+.end-overthrown .ending-stats {
+  border-color: rgba(247, 236, 214, 0.3);
 }
 
 .ending-stat {
@@ -877,7 +900,7 @@
 
 .ending-stat .stat {
   font-family: var(--font-sans);
-  font-size: 32px;
+  font-size: 38px;
   font-weight: 600;
 }
 
@@ -1025,7 +1048,7 @@
 .reckon-fill {
   display: block;
   height: 100%;
-  background: repeating-linear-gradient(135deg, #8b2e2e 0 3px, #a85a5a 3px 6px);
+  background: var(--ink-deep);
 }
 
 .reckon-line {

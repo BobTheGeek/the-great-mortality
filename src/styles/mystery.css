@@ -1434,3 +1434,84 @@
     opacity: 0;
   }
 }
+
+/* Canvas fidelity: verdict headings, empty states (milestone 6 pass). */
+
+.verdict-kicker {
+  text-align: center;
+  margin: 0 0 6px;
+}
+
+.verdict-theory {
+  margin: 0 0 14px;
+  font-size: 26px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.verdict-quote {
+  font-style: italic;
+}
+
+.empty-note {
+  font-size: 15px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.board-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100%;
+  padding: 40px 30px;
+  text-align: center;
+}
+
+.board-empty-frame {
+  position: relative;
+  width: min(380px, 82%);
+  height: 150px;
+  border: 2px dashed rgba(74, 47, 29, 0.55);
+  border-radius: 4px;
+}
+
+.board-empty-frame .scrap-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.board-empty-title {
+  margin: 0;
+  font-size: 26px;
+}
+
+.board-empty-note {
+  margin: 0;
+  max-width: 360px;
+  font-size: 15px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.cards-empty {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.cards-empty-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.cards-empty-note {
+  margin: 0;
+  font-size: 15px;
+  font-style: italic;
+  opacity: 0.85;
+}

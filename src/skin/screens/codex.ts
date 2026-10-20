@@ -68,7 +68,8 @@ export function codexHtml(state: AppState): string {
         </footer>
         <p class="codex-seen">Added to your Codex · ${seenCount} of ${total} terms seen</p>`,
       )}`
-    : '<p class="empty">One word so far: yours.</p>';
+    : `<p class="empty">One word so far: yours.</p>
+       <p class="empty-note">Underlined words in the game open here. Tap any you meet.</p>`;
 
   return `
     <div class="spread codex-spread">
