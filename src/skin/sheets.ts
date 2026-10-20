@@ -253,7 +253,7 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
   if (sheet.kind === 'paused') {
     return `
       <div class="scrim" data-action="paused-close"></div>
-      <div class="sheet sheet-small" data-testid="sheet-paused" role="dialog" aria-modal="true">
+      <div class="sheet sheet-small sheet-paused" data-testid="sheet-paused" role="dialog" aria-modal="true">
         <h2>Paused</h2>
         ${
           sheet.resetArmed
@@ -264,11 +264,127 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
             <button class="primary" data-action="reset-confirm" data-testid="reset-confirm">Yes, reset everything</button>
           </div>`
             : `
-          <div class="sheet-actions">
+          <h3 class="section-label">This device</h3>
+          <div class="settings-row">
             <button class="quiet danger-ghost" data-action="reset-progress" data-testid="reset-progress">Reset all progress</button>
+          </div>
+          <h3 class="section-label">Progress backup</h3>
+          <p class="sheet-body small">A code that carries this ledger to another shelf, or back to this one if the browser forgets.</p>
+          <div class="settings-row">
+            <button class="quiet" data-action="copy-code" data-testid="copy-code">Copy progress code</button>
+            <button class="quiet" data-action="restore-open" data-testid="restore-open">Restore from code</button>
+          </div>
+          ${state.codeText ? `<textarea class="code-field" data-testid="code-output" readonly rows="3">${esc(state.codeText)}</textarea>` : ''}
+          ${
+            state.restoreOpen
+              ? `
+          <textarea class="code-field" data-testid="code-input" rows="3" placeholder="Paste a progress code"></textarea>
+          <div class="settings-row">
+            <button class="quiet" data-action="restore-cancel">Never mind</button>
+            <button class="primary" data-action="restore-code" data-testid="restore-code">Restore</button>
+          </div>`
+              : ''
+          }
+          ${state.codeStatus ? `<p class="code-status" data-testid="code-status">${esc(state.codeStatus)}</p>` : ''}
+          <h3 class="section-label">Credits</h3>
+          <p class="credits">Built for the classroom. History after Ole Benedictow and Boccaccio; the plague’s true answer came from Yersin and Simond, 1894.</p>
+          <div class="sheet-actions">
             <button class="primary" data-action="paused-close" data-testid="paused-close">Return to the ledger</button>
           </div>`
         }
+      </div>`;
+  }
+
+  if (sheet.kind === 'dev') {
+    const run = state.run;
+    const towns = run
+      ? spec.towns
+          .map((t) => {
+            const town = run.towns[t.id]!;
+            return `<tr><td>${esc(t.name)}</td><td>${Math.round(town.S)}</td><td>${Math.round(
+              town.I,
+            )}</td><td>${Math.round(town.P)}</td><td>${Math.round(town.D)}</td><td>${Math.round(
+              town.R,
+            )}</td><td>${Math.round(town.ratS + town.ratI)}</td></tr>`;
+          })
+          .join('')
+      : '';
+    const harness = state.devHarness
+      ? `
+        <table class="dev-table" data-testid="dev-harness-table">
+          <thead><tr><th>Strategy</th><th>Survives</th><th>Overthrown</th><th>Fontenera</th></tr></thead>
+          <tbody>${state.devHarness
+            .map(
+              (row) =>
+                `<tr><td>${esc(row.name)}</td><td>${Math.round(row.avg * 100)}%</td><td>${Math.round(
+                  row.overthrown * 100,
+                )}%</td><td>${Math.round(row.spared * 100)}%</td></tr>`,
+            )
+            .join('')}</tbody>
+        </table>`
+      : '';
+    return `
+      <div class="sheet sheet-dev" data-testid="sheet-dev" role="dialog" aria-modal="true">
+        <header class="dev-head">
+          <div>
+            <p class="label">Dev · the steward’s compass</p>
+            <h2>Dev mode</h2>
+          </div>
+          <button class="icon-btn" data-action="dev-close" data-testid="dev-close" aria-label="Close">✕</button>
+        </header>
+        <section class="dev-section">
+          <span class="dev-label">Seed</span>
+          <code data-testid="dev-seed-current">${run ? run.seed : '—'}</code>
+          <input type="number" class="dev-input" data-testid="dev-seed-input" placeholder="new seed" inputmode="numeric" />
+          <button class="quiet" data-action="dev-new-seed" data-testid="dev-new-seed">New game with this seed</button>
+        </section>
+        <section class="dev-section">
+          <span class="dev-label">Month ${run ? run.month + 1 : '—'} of ${spec.sim.months}</span>
+          <input type="number" class="dev-input" data-testid="dev-skip-input" placeholder="N" inputmode="numeric" />
+          <button class="quiet" data-action="dev-skip" data-testid="dev-skip">Skip to month N</button>
+          <button class="quiet" data-action="dev-end" data-testid="dev-end">Run to the end</button>
+        </section>
+        <section class="dev-section">
+          <button class="quiet" data-action="dev-lens" data-testid="dev-lens">Open the Lens</button>
+          <button class="quiet" data-action="dev-unlock" data-testid="dev-unlock">Unlock all</button>
+          <button class="quiet danger-ghost" data-action="dev-reset" data-testid="dev-reset">Reset all</button>
+        </section>
+        ${state.devNote ? `<p class="dev-note" data-testid="dev-note">${esc(state.devNote)}</p>` : ''}
+        ${
+          towns
+            ? `
+        <section class="dev-section dev-col">
+          <span class="dev-label">Towns · S/I/P/D/R · rats</span>
+          <table class="dev-table" data-testid="dev-towns">
+            <thead><tr><th>Town</th><th>S</th><th>I</th><th>P</th><th>D</th><th>R</th><th>Rats</th></tr></thead>
+            <tbody>${towns}</tbody>
+          </table>
+        </section>`
+            : ''
+        }
+        <section class="dev-section dev-col">
+          <span class="dev-label">Fire an event</span>
+          <div class="dev-chips">${(spec.scriptedEvents ?? [])
+            .map(
+              (event) =>
+                `<button class="quiet dev-chip" data-action="dev-fire-event" data-id="${event.id}" data-testid="dev-event-${event.id}">${esc(event.title)}</button>`,
+            )
+            .join('')}</div>
+        </section>
+        <section class="dev-section dev-col">
+          <span class="dev-label">Pin a clue</span>
+          <div class="dev-chips">${spec.mystery.clues
+            .map(
+              (clue) =>
+                `<button class="quiet dev-chip" data-action="dev-pin-clue" data-id="${clue.id}" data-testid="dev-clue-${clue.id}">${esc(clue.title)}</button>`,
+            )
+            .join('')}</div>
+        </section>
+        <section class="dev-section dev-col">
+          <span class="dev-label">Balance harness</span>
+          <button class="quiet" data-action="dev-harness" data-testid="dev-harness">Run harness (120 seeds/strategy)</button>
+          ${harness}
+        </section>
       </div>`;
   }
 

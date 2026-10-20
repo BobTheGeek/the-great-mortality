@@ -31,6 +31,7 @@ export type SheetState =
   | { kind: 'event'; eventId: string }
   | { kind: 'advisor'; advisorId: string; offer: AdvisorOffer | null }
   | { kind: 'lens-reveal' }
+  | { kind: 'dev' }
   | { kind: 'codex-term'; termId: string; x: number; y: number };
 
 export interface LensLayers {
@@ -62,6 +63,15 @@ export interface AppState {
   namePage: number;
   lensOpen: boolean;
   lensLayers: LensLayers;
+  a2hsExpanded: boolean;
+  a2hsWarn: boolean;
+  codeText: string | null;
+  codeStatus: string | null;
+  restoreOpen: boolean;
+  devTaps: number[];
+  devSeed: number | null;
+  devNote: string | null;
+  devHarness: { name: string; avg: number; overthrown: number; spared: number }[] | null;
 }
 
 export interface Store {

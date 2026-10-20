@@ -187,6 +187,23 @@ body {
     opacity: 1;
     stroke: var(--gold);
   }
+
+  .app,
+  body,
+  .leaf-hero::after,
+  .leaf-ledger::after {
+    transition: none;
+  }
+
+  #season-label,
+  #compass,
+  #compass path,
+  #layer-season,
+  #layer-towns,
+  #layer-towns .name,
+  #layer-towns .status {
+    transition: none;
+  }
 }
 
 .map-svg.town-focus #layer-base,

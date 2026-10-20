@@ -3,17 +3,20 @@ import './styles/shell.css';
 import './styles/mortality.css';
 import './styles/mystery.css';
 import './styles/story.css';
+import './styles/pwa.css';
 import { createFlow } from './app/flow';
 import { createStore } from './app/store';
 import { hydrateRun } from './engine/serialize';
 import { loadSpec } from './spec/load';
 import { validateSpec } from './spec/validate';
 import { createDefaultStore } from './shell/persistence';
+import { isStandalone, registerServiceWorker, requestStoragePersist } from './shell/pwa';
 import { SaveStore } from './shell/save';
 import { createJournal, createPersistentState } from './shell/state';
 import { createApp } from './skin/app';
 
 async function boot(): Promise<void> {
+  const started = performance.now();
   const root = document.getElementById('app');
   if (!root) return;
 
@@ -28,6 +31,7 @@ async function boot(): Promise<void> {
           <ul class="errors">${validation.errors.map((error) => `<li>${error}</li>`).join('')}</ul>
         </main>
       </div>`;
+    document.getElementById('splash')?.remove();
     if (import.meta.env.DEV) {
       throw new Error(`Spec validation failed:\n${validation.errors.join('\n')}`);
     }
@@ -37,7 +41,7 @@ async function boot(): Promise<void> {
   const kv = await createDefaultStore();
   const saves = new SaveStore(kv, spec.meta.version);
   const doc = await saves.load();
-  const persistent = doc?.persistent ?? createPersistentState();
+  const persistent = { ...createPersistentState(), ...(doc?.persistent ?? {}) };
   const journal = doc?.journal ?? createJournal();
   let run = null;
   if (doc?.run) {
@@ -71,6 +75,15 @@ async function boot(): Promise<void> {
     namePage: 0,
     lensOpen: false,
     lensLayers: { rats: true, fleas: true, forms: false },
+    a2hsExpanded: false,
+    a2hsWarn: false,
+    codeText: null,
+    codeStatus: null,
+    restoreOpen: false,
+    devTaps: [],
+    devSeed: null,
+    devNote: null,
+    devHarness: null,
   });
   const flow = createFlow({ store, saves });
   const codex = new Map(spec.codex.map((entry) => [entry.id, entry]));
@@ -80,6 +93,13 @@ async function boot(): Promise<void> {
   }
   store.subscribe(() => app.render());
   app.render();
+
+  // Let the splash rest a moment even when storage is instant.
+  const remaining = Math.max(0, 400 - (performance.now() - started));
+  window.setTimeout(() => document.getElementById('splash')?.remove(), remaining);
+
+  if (isStandalone()) requestStoragePersist();
+  if (import.meta.env.PROD) registerServiceWorker();
 }
 
 void boot();

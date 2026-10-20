@@ -2,6 +2,36 @@ import { hasHistory, nameChoices, saveSummary } from '../../app/opening';
 import type { AppState } from '../../app/store';
 import type { CodexEntry } from '../../spec/types';
 import { esc, renderCopy } from '../../shell/dom';
+import { isStandalone, shouldShowA2hs } from '../../shell/pwa';
+
+function a2hsHtml(state: AppState): string {
+  if (!shouldShowA2hs(isStandalone(), state.persistent)) return '';
+  if (state.a2hsExpanded) {
+    return `
+      <div class="a2hs a2hs-expanded" data-testid="a2hs">
+        <p class="a2hs-title">Put the ledger on your shelf</p>
+        <p class="a2hs-body">Tap the Share button at the top of the screen (the ⍐ square), then choose “Add to Home Screen.”</p>
+        <div class="a2hs-actions">
+          <button class="primary ink" data-action="a2hs-done" data-testid="a2hs-done">Done</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="a2hs" data-testid="a2hs">
+      <p class="a2hs-title">Put the ledger on your shelf</p>
+      <p class="a2hs-body">To play fullscreen and offline: tap Share ⍐ then Add to Home Screen.</p>
+      ${
+        state.a2hsWarn
+          ? '<p class="a2hs-warn" data-testid="a2hs-warn">Progress made here won’t carry over to the home-screen app.</p>'
+          : ''
+      }
+      <div class="a2hs-actions">
+        <button class="primary ink" data-action="a2hs-show" data-testid="a2hs-show">Show me</button>
+        <button class="quiet" data-action="a2hs-later" data-testid="a2hs-later">Later</button>
+      </div>
+      <span class="a2hs-pointer" aria-hidden="true"></span>
+    </div>`;
+}
 
 function nightScene(dimmed: boolean): string {
   const galleys = [240, 500, 780]
@@ -57,6 +87,7 @@ function returnVisit(state: AppState): string {
   return `
     <div class="app app-start" data-testid="start-screen">
       ${nightScene(true)}
+      ${a2hsHtml(state)}
       <main class="return-visit" data-testid="return-visit">
         <header class="return-head">
           <p class="kicker">${esc(t.kicker.toUpperCase())}</p>
@@ -95,6 +126,7 @@ function titleCard(state: AppState, codex: Map<string, CodexEntry>): string {
   return `
     <div class="app app-start" data-testid="start-screen">
       ${nightScene(false)}
+      ${a2hsHtml(state)}
       <main class="title-card" data-testid="opening-title">
         <p class="kicker">${esc(t.kicker.toUpperCase())}</p>
         <h1><span class="dropcap">${esc(t.title.slice(0, 1))}</span>${esc(t.title.slice(1))}</h1>
@@ -129,6 +161,7 @@ function openingLines(state: AppState): string {
           ${next ? `<span class="open-line next">${esc(next)}</span>` : ''}
         </span>
       </button>
+      ${a2hsHtml(state)}
     </div>
     <div class="sheet-host" data-testid="sheet-host"></div>`;
 }

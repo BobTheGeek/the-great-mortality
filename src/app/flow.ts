@@ -1,11 +1,14 @@
 import { autoplayToEnd, createRun, endMonth, issueDecree, liftDecree } from '../engine/engine';
-import { serializeRun } from '../engine/serialize';
+import { runBalance } from '../engine/harness';
+import { hydrateRun, serializeRun } from '../engine/serialize';
 import type { RunState } from '../engine/types';
 import { createPersistentState, createJournal } from '../shell/state';
+import { decodeSaveCode, encodeSaveCode, SAVE_SCHEMA, type SaveDocument } from '../shell/save';
 import type { SaveStore } from '../shell/save';
 import { deriveDecreeRow } from '../skin/decrees';
 import { composeReport } from '../skin/report';
 import { advisorForMonth, advisorLine, advisorOffer, applyPendingOffer } from './advisors';
+import { skipMonths, unlockAll, unlockSummaryText } from './dev';
 import { addDecreeEntry, addReportEntries } from './journal';
 import { allQuestionsSolved, evaluateTheory, solveQuestion } from './mystery';
 import { namePageCount } from './opening';
@@ -55,6 +58,47 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
   const persist = (): void => {
     const state = store.get();
     void saves.save(state.persistent, state.run ? serializeRun(state.run) : null, state.journal);
+  };
+
+  const buildDocument = (): SaveDocument => {
+    const state = store.get();
+    return {
+      schema: SAVE_SCHEMA,
+      app: 'the-great-mortality',
+      specVersion: state.spec.meta.version,
+      savedAt: new Date().toISOString(),
+      persistent: state.persistent,
+      run: state.run ? serializeRun(state.run) : null,
+      journal: state.journal,
+    };
+  };
+
+  const resetAll = (): void => {
+    const state = store.get();
+    const fresh = createPersistentState();
+    fresh.a2hsDismissed = state.persistent.a2hsDismissed;
+    fresh.a2hsWarned = state.persistent.a2hsWarned;
+    store.update({
+      persistent: fresh,
+      run: null,
+      journal: createJournal(),
+      screen: 'start',
+      sheet: null,
+      queue: [],
+      pendingChronicle: null,
+      advisorPeek: null,
+      openingStarted: false,
+      openingLine: 0,
+      openingTitle: false,
+      namePage: 0,
+      devNote: null,
+      devHarness: null,
+      codeText: null,
+      codeStatus: null,
+      restoreOpen: false,
+      ...clearRunUi(),
+    });
+    persist();
   };
 
   const clearRunUi = (): Partial<AppState> => ({
@@ -258,7 +302,8 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
       const state = store.get();
       const name = el.dataset.name ?? state.spec.opening.namePool[0] ?? 'Lorenzo';
       const seedParam = new URLSearchParams(window.location.search).get('seed');
-      const seed = seedParam != null && seedParam !== '' ? Number(seedParam) : undefined;
+      const urlSeed = seedParam != null && seedParam !== '' ? Number(seedParam) : undefined;
+      const seed = state.devSeed != null ? state.devSeed : urlSeed;
       const run = createRun(state.spec, {
         seed: Number.isFinite(seed) ? seed : undefined,
         stewardName: name,
@@ -285,6 +330,7 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
         openingLine: 0,
         openingTitle: false,
         namePage: 0,
+        devSeed: null,
         ...clearRunUi(),
       });
       persist();
@@ -760,22 +806,7 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
     },
 
     'reset-confirm': () => {
-      store.update({
-        persistent: createPersistentState(),
-        run: null,
-        journal: createJournal(),
-        screen: 'start',
-        sheet: null,
-        queue: [],
-        pendingChronicle: null,
-        advisorPeek: null,
-        openingStarted: false,
-        openingLine: 0,
-        openingTitle: false,
-        namePage: 0,
-        ...clearRunUi(),
-      });
-      persist();
+      resetAll();
     },
 
     'back-to-ledger': () => {
@@ -784,6 +815,236 @@ export function createFlow(deps: { store: Store; saves: SaveStore }): Flow {
 
     'issue-here': () => {
       store.update({ ledger: 'ledger' });
+    },
+
+    'a2hs-later': () => {
+      const state = store.get();
+      if (!state.persistent.a2hsWarned) {
+        state.persistent.a2hsWarned = true;
+        store.update({ a2hsWarn: true });
+        persist();
+        return;
+      }
+      state.persistent.a2hsDismissed = true;
+      store.update({ a2hsWarn: false, a2hsExpanded: false });
+      persist();
+    },
+
+    'a2hs-show': () => {
+      store.update({ a2hsExpanded: true });
+    },
+
+    'a2hs-done': () => {
+      store.update({ a2hsExpanded: false });
+    },
+
+    'copy-code': () => {
+      const code = encodeSaveCode(buildDocument());
+      store.update({ codeText: code, codeStatus: null });
+      const clipboard = navigator.clipboard;
+      if (clipboard && typeof clipboard.writeText === 'function') {
+        clipboard.writeText(code).then(
+          () => store.update({ codeStatus: 'Copied.' }),
+          () => store.update({ codeStatus: 'Select the code below and copy it.' }),
+        );
+      } else {
+        store.update({ codeStatus: 'Select the code below and copy it.' });
+      }
+    },
+
+    'restore-open': () => {
+      store.update({ restoreOpen: true, codeStatus: null });
+    },
+
+    'restore-cancel': () => {
+      store.update({ restoreOpen: false, codeStatus: null });
+    },
+
+    'restore-code': () => {
+      const state = store.get();
+      const input = document.querySelector<HTMLTextAreaElement>('[data-testid="code-input"]');
+      const value = input?.value ?? '';
+      try {
+        const doc = decodeSaveCode(value);
+        let run: RunState | null = null;
+        if (doc.run) {
+          try {
+            run = hydrateRun(state.spec, doc.run);
+          } catch {
+            run = null;
+          }
+        }
+        store.update({
+          persistent: { ...createPersistentState(), ...doc.persistent },
+          run,
+          journal: doc.journal ?? createJournal(),
+          screen: 'start',
+          sheet: { kind: 'paused', resetArmed: false },
+          restoreOpen: false,
+          codeStatus: 'Progress restored.',
+          codeText: null,
+          queue: [],
+          pendingChronicle: null,
+          advisorPeek: null,
+          ...clearRunUi(),
+        });
+        persist();
+      } catch (error) {
+        store.update({
+          codeStatus: error instanceof Error ? error.message : 'This progress code is damaged.',
+        });
+      }
+    },
+
+    'dev-tap': () => {
+      const state = store.get();
+      const now = Date.now();
+      const taps = [...state.devTaps.filter((tap) => now - tap < 3000), now];
+      if (taps.length >= 7) {
+        store.update({ devTaps: [], sheet: { kind: 'dev' }, devNote: null, devHarness: null });
+        return;
+      }
+      store.update({ devTaps: taps });
+    },
+
+    'dev-close': () => {
+      store.update({ sheet: null });
+      advance();
+    },
+
+    'dev-new-seed': () => {
+      const state = store.get();
+      const input = document.querySelector<HTMLInputElement>('[data-testid="dev-seed-input"]');
+      const value = Number(input?.value ?? '');
+      if (!Number.isFinite(value)) return;
+      store.update({
+        devSeed: Math.floor(value),
+        run: null,
+        journal: createJournal(),
+        screen: 'start',
+        sheet: null,
+        queue: [],
+        pendingChronicle: null,
+        advisorPeek: null,
+        openingStarted: true,
+        openingLine: state.spec.opening.narration.length,
+        openingTitle: true,
+        namePage: 0,
+        devNote: null,
+        ...clearRunUi(),
+      });
+      persist();
+    },
+
+    'dev-skip': () => {
+      const state = store.get();
+      if (!state.run) return;
+      const input = document.querySelector<HTMLInputElement>('[data-testid="dev-skip-input"]');
+      const value = Number(input?.value ?? '');
+      if (!Number.isFinite(value)) return;
+      const skipped = skipMonths(state.run, Math.floor(value) - 1);
+      persist();
+      store.update({
+        devNote: `Skipped ${skipped} month${skipped === 1 ? '' : 's'} — now month ${
+          state.run.month + 1
+        } of ${state.spec.sim.months}.`,
+      });
+    },
+
+    'dev-end': () => {
+      const state = store.get();
+      const run = state.run;
+      if (!run) return;
+      if (run.flags['shell:endMonth'] == null) {
+        run.flags['shell:endMonth'] = String(
+          Math.max(0, Math.min(run.month, state.spec.sim.months - 1)),
+        );
+      }
+      const events = finalizeOnce(run);
+      markNew(events);
+      autoplayToEnd(run);
+      if (!run.ended) run.ended = 'normal';
+      finalizeEpithet(state.spec, state.persistent, run);
+      const queue: PendingStep[] = [
+        ...earnedSteps(events),
+        run.ended === 'normal' ? { kind: 'reckoning' } : { kind: 'ending' },
+      ];
+      store.update({ sheet: null, queue, lensOpen: false, advisorPeek: null });
+      persist();
+      advance();
+    },
+
+    'dev-lens': () => {
+      store.update({
+        sheet: null,
+        screen: 'map',
+        lensOpen: true,
+        ledger: 'ledger',
+        selectedTown: null,
+      });
+    },
+
+    'dev-unlock': () => {
+      const state = store.get();
+      const summary = unlockAll(state.spec, state.persistent);
+      persist();
+      store.update({ devNote: unlockSummaryText(summary) });
+    },
+
+    'dev-reset': () => {
+      resetAll();
+    },
+
+    'dev-fire-event': (el) => {
+      const state = store.get();
+      const def = state.spec.scriptedEvents?.find((e) => e.id === el.dataset.id);
+      if (!def) return;
+      const events = grantEvent(state.spec, state.persistent, def.id, {
+        month: state.run?.month ?? 0,
+      });
+      markNew(events);
+      const termEvents = markTermsSeen(state.spec, state.persistent, [
+        def.title,
+        ...def.paragraphs,
+        def.stewardAction,
+        def.footer,
+      ]);
+      markNew(termEvents);
+      store.update({ sheet: null, queue: [{ kind: 'event', eventId: def.id }], pendingChronicle: null });
+      persist();
+      advance();
+    },
+
+    'dev-pin-clue': (el) => {
+      const state = store.get();
+      const clueId = el.dataset.id ?? '';
+      const clue = state.spec.mystery.clues.find((c) => c.id === clueId);
+      if (!clue) return;
+      let note: string;
+      if (state.persistent.cluesFound.includes(clueId)) {
+        note = `Already found: ${clue.title}.`;
+      } else {
+        state.persistent.cluesFound.push(clueId);
+        const events = grantClue(state.spec, state.persistent, clueId, {
+          month: state.run?.month ?? 0,
+        });
+        markNew(events);
+        present(events);
+        note = `Pinned: ${clue.title}.`;
+      }
+      persist();
+      store.update({ devNote: note });
+    },
+
+    'dev-harness': () => {
+      const state = store.get();
+      const rows = runBalance(state.spec, 120, 1000).map((summary) => ({
+        name: summary.name,
+        avg: summary.avgSurvival,
+        overthrown: summary.overthrownShare,
+        spared: summary.fonteneraSparedShare,
+      }));
+      store.update({ devHarness: rows, devNote: 'Harness: 120 seeds per strategy.' });
     },
   };
 
