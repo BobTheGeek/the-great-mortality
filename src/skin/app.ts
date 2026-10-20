@@ -1,12 +1,17 @@
-import type { CodexEntry } from '../spec/types';
-import { applyTheme, darknessT, themeFor } from '../skin/theme';
-import { createMapController, type MapController } from '../skin/map';
-import { mountMapShell, renderHeading, renderLedger } from '../skin/screens/map';
-import { renderStart } from '../skin/screens/start';
-import { renderSheetHtml } from '../skin/sheets';
 import { latestForTown } from '../app/journal';
 import type { Flow } from '../app/flow';
-import type { Store } from '../app/store';
+import type { AppState, Store } from '../app/store';
+import type { CodexEntry } from '../spec/types';
+import { createMapController, type MapController } from '../skin/map';
+import { boardHtml, mountBoardThreads } from '../skin/screens/board';
+import { cardsHtml } from '../skin/screens/cards';
+import { chroniclesHtml } from '../skin/screens/chronicles';
+import { codexHtml } from '../skin/screens/codex';
+import { mountMapShell, renderHeading, renderLedger } from '../skin/screens/map';
+import { renderStart } from '../skin/screens/start';
+import { tabsHtml } from '../skin/screens/tabs';
+import { renderSheetHtml } from '../skin/sheets';
+import { applyTheme, darknessT, themeFor } from '../skin/theme';
 
 export interface AppDeps {
   store: Store;
@@ -18,6 +23,7 @@ export function createApp(deps: AppDeps): { render(): void } {
   const root = document.getElementById('app');
   if (!root) throw new Error('missing #app');
   let mapController: MapController | null = null;
+  let mapHost: HTMLElement | null = null;
 
   root.addEventListener('click', (event) => {
     const target = event.target as Element | null;
@@ -36,52 +42,76 @@ export function createApp(deps: AppDeps): { render(): void } {
     deps.flow.actions[action]?.(actionEl);
   });
 
-  function render(): void {
-    const state = deps.store.get();
-    if (state.screen === 'start' || !state.run) {
-      mapController = null;
-      renderStart(root!, state, deps.codex);
-      return;
-    }
+  function renderSheetHost(state: AppState): void {
+    const sheetHost = root!.querySelector('[data-testid="sheet-host"]');
+    if (sheetHost) sheetHost.innerHTML = renderSheetHtml(state, deps.codex);
+  }
 
+  function renderReference(state: AppState): void {
+    mapController = null;
+    mapHost = null;
+    const content =
+      state.screen === 'board'
+        ? boardHtml(state, deps.codex)
+        : state.screen === 'codex'
+          ? codexHtml(state)
+          : state.screen === 'chronicles'
+            ? chroniclesHtml(state, deps.codex)
+            : cardsHtml(state, deps.codex);
+    root!.innerHTML = `
+      <div class="app">
+        <div class="screen">
+          ${tabsHtml(state)}
+          ${content}
+        </div>
+      </div>
+      <div class="sheet-host" data-testid="sheet-host"></div>`;
+    if (state.screen === 'board') mountBoardThreads(root!);
+    renderSheetHost(state);
+  }
+
+  function renderMap(state: AppState): void {
     mountMapShell(root!);
-    if (!mapController) {
-      mapController = createMapController(root!.querySelector('[data-testid="map-host"]')!);
+    const host = root!.querySelector('[data-testid="map-host"]') as HTMLElement | null;
+    if (host && (mapController === null || mapHost !== host)) {
+      mapController = createMapController(host);
+      mapHost = host;
     }
-
     let dead = 0;
     let pop = 0;
-    Object.values(state.run.towns).forEach((t) => {
+    Object.values(state.run!.towns).forEach((t) => {
       dead += t.D;
       pop += t.pop;
     });
     applyTheme(root!, themeFor(darknessT(dead, pop)));
-
     renderHeading(root!, state);
     renderLedger(root!, state, deps.codex);
-
-    const sheetHost = root!.querySelector('[data-testid="sheet-host"]');
-    if (sheetHost) sheetHost.innerHTML = renderSheetHtml(state, deps.codex);
-
-    mapController.update({
+    renderSheetHost(state);
+    mapController?.update({
       spec: state.spec,
-      run: state.run,
+      run: state.run!,
       selectedDecree: state.selectedDecree,
       focusTown: state.ledger === 'town' ? state.selectedTown : null,
     });
-
     const texts: string[] = [];
-    if (state.sheet?.kind === 'report') {
+    if (state.ledger === 'town' && state.selectedTown) {
       texts.push(
-        ...state.sheet.view.written,
-        state.sheet.view.footer,
-        ...state.sheet.view.newClues.map((clue) => clue.text),
+        ...latestForTown(state.spec, state.journal, state.selectedTown).map((line) => line.text),
       );
     }
-    if (state.ledger === 'town' && state.selectedTown) {
-      texts.push(...latestForTown(state.spec, state.journal, state.selectedTown).map((line) => line.text));
-    }
     if (texts.length) deps.flow.markSeen(texts);
+  }
+
+  function render(): void {
+    const state = deps.store.get();
+    if (state.screen === 'start' || !state.run) {
+      mapController = null;
+      mapHost = null;
+      renderStart(root!, state, deps.codex);
+      return;
+    }
+    if (state.screen === 'map') renderMap(state);
+    else renderReference(state);
   }
 
   return { render };

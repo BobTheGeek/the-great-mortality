@@ -1,7 +1,10 @@
+import { fillClueText } from '../app/journal';
+import { earnedCaption } from '../app/progress';
 import type { AppState } from '../app/store';
 import { fillPlaceholders } from '../spec/markup';
 import type { CodexEntry } from '../spec/types';
 import { esc, renderCopy } from '../shell/dom';
+import { codexEntryHtml } from './screens/codex';
 
 export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>): string {
   const sheet = state.sheet;
@@ -74,6 +77,28 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
             .join('')}
         </div>`
       : '';
+    const unlocks = sheet.unlocks
+      .map((event) => {
+        const codexTerm = spec.codex.find((c) => c.id === event.id);
+        const chronicle = spec.chronicles.find((c) => c.id === event.id);
+        const card = spec.cards.find((c) => c.id === event.id);
+        const title =
+          event.kind === 'codex' ? codexTerm?.term : event.kind === 'chronicle' ? chronicle?.title : card?.myth;
+        const kindLabel =
+          event.kind === 'codex'
+            ? 'Codex'
+            : event.kind === 'chronicle'
+              ? 'Chronicle'
+              : 'Myth-Buster Card';
+        return `
+          <li class="unlock-row" data-testid="unlock-${event.kind}-${event.id}">
+            <span class="unlock-glyph glyph-${event.kind}"></span>
+            <span class="unlock-body"><span class="unlock-kind">${kindLabel}</span><span class="unlock-title">${esc(
+              title ?? event.id,
+            )}</span></span>
+          </li>`;
+      })
+      .join('');
     return `
       <div class="scrim"></div>
       <div class="sheet sheet-report" data-testid="sheet-report" role="dialog" aria-modal="true">
@@ -94,7 +119,10 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
             <h3 class="section-label">It is written that</h3>
             <div class="written">${written}</div>
           </div>
-          <div class="report-right">${pinned}</div>
+          <div class="report-right">
+            ${pinned}
+            ${unlocks ? `<h3 class="section-label">Newly unlocked</h3><ul class="unlocks">${unlocks}</ul>` : ''}
+          </div>
         </div>
         <footer class="report-foot">
           <p class="report-footer">${renderCopy(view.footer, codex)}</p>
@@ -102,6 +130,123 @@ export function renderSheetHtml(state: AppState, codex: Map<string, CodexEntry>)
             sheet.ended ? 'Begin again' : esc(view.nextLabel)
           }</button>
         </footer>
+      </div>`;
+  }
+
+  if (sheet.kind === 'verdict' && run) {
+    const question = spec.mystery.questions.find((q) => q.id === sheet.questionId);
+    if (!question) return '';
+    const verdict = sheet.verdict;
+    if (verdict.state === 'solved') {
+      return `
+        <div class="scrim" data-action="verdict-close"></div>
+        <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+          <span class="stamp-wax"><span class="stamp-word">Solved</span><span class="stamp-numeral">${question.numeral}</span></span>
+          <p class="verdict-summary">${renderCopy(verdict.summary ?? '', codex)}</p>
+          <div class="sheet-actions sheet-actions-center">
+            <button class="primary" data-action="verdict-pin" data-testid="verdict-pin">${esc(
+              spec.mystery.verdicts.solved.button,
+            )}</button>
+          </div>
+        </div>`;
+    }
+    if (verdict.state === 'notYet') {
+      return `
+        <div class="scrim" data-action="verdict-close"></div>
+        <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+          <span class="stamp-ring stamp-notyet"><span>Not yet</span><span class="stamp-q">?</span></span>
+          <p class="verdict-text">${esc(spec.mystery.verdicts.notYet.text)}</p>
+          <p class="verdict-hint">${esc(verdict.hint ?? '')}</p>
+          <div class="sheet-actions sheet-actions-center">
+            <button class="quiet" data-action="verdict-close" data-testid="verdict-close">${esc(
+              spec.mystery.verdicts.notYet.button,
+            )}</button>
+          </div>
+        </div>`;
+    }
+    const lead = verdict.religious
+      ? spec.mystery.verdicts.wrong.religiousText
+      : spec.mystery.verdicts.wrong.text;
+    const clueBlock = verdict.clue
+      ? `
+        <article class="scrap scrap-inline" data-testid="verdict-clue">
+          <h4>${esc(verdict.clue.title)}</h4>
+          <p>${renderCopy(fillClueText(spec, state.journal, verdict.clue.id, verdict.clue.text), codex)}</p>
+        </article>`
+      : '';
+    return `
+      <div class="scrim" data-action="verdict-close"></div>
+      <div class="sheet sheet-verdict" data-testid="sheet-verdict" role="dialog" aria-modal="true">
+        <span class="stamp-ring stamp-hardno"><span>The clues</span><span>say no</span></span>
+        <p class="verdict-text">${esc(lead ?? '')}</p>
+        ${clueBlock}
+        ${
+          verdict.clue
+            ? ''
+            : `<p class="verdict-hint" data-testid="verdict-noclue">${esc(verdict.text ?? '')}</p>`
+        }
+        <div class="sheet-actions sheet-actions-center">
+          <button class="quiet" data-action="verdict-close" data-testid="verdict-close">${esc(
+            spec.mystery.verdicts.wrong.button,
+          )}</button>
+        </div>
+      </div>`;
+  }
+
+  if (sheet.kind === 'earned' && run) {
+    const card = spec.cards.find((c) => c.id === sheet.cardId);
+    if (!card) return '';
+    const caption = earnedCaption(spec, state.persistent, card.id);
+    const stampCls = card.verdict === 'partly-true' ? 'stamp-partly' : 'stamp-busted';
+    const stampText = card.verdict === 'partly-true' ? 'Partly true' : 'Busted';
+    return `
+      <div class="earned-ground" data-testid="earned-moment">
+        <p class="label earned-label">Earned · tap the card</p>
+        <div class="earned-card" data-id="${card.id}">
+          <div class="earned-inner">
+            <button class="earned-face earned-front" data-action="earned-flip">
+              <span class="card-label">Myth · ${card.numeral} · Front</span>
+              <span class="woodcut">woodcut · ${esc(card.numeral)}</span>
+              <span class="card-myth">${esc(card.myth)}</span>
+            </button>
+            <button class="earned-face earned-back" data-action="earned-flip">
+              <span class="card-label">Myth · ${card.numeral} · Verdict</span>
+              <span class="stamp stamp-big ${stampCls}">${stampText}</span>
+              <span class="card-story">${esc(card.story)}</span>
+              <span class="card-how"><span class="label">How do we know?</span>${esc(card.howWeKnow)}</span>
+            </button>
+          </div>
+        </div>
+        ${caption ? `<p class="earned-caption">${esc(caption)}</p>` : ''}
+        <button class="primary" data-action="earned-keep" data-testid="earned-keep">Keep it</button>
+      </div>`;
+  }
+
+  if (sheet.kind === 'codex-term') {
+    const term = spec.codex.find((c) => c.id === sheet.termId);
+    if (!term) return '';
+    const x = Math.min(Math.max(sheet.x, 60), Math.max(60, window.innerWidth - 60));
+    const y = Math.min(sheet.y + 14, Math.max(80, window.innerHeight - 80));
+    return `
+      <div class="scrim popover-scrim" data-action="popover-close"></div>
+      <div class="popover" data-testid="popover" style="left:${x.toFixed(0)}px; top:${y.toFixed(0)}px">
+        <span class="popover-arrow"></span>
+        <header class="popover-head">
+          <div>
+            <p class="label">Codex · ${esc(term.pos.toUpperCase())}</p>
+            <h3>${esc(term.term)}</h3>
+          </div>
+          <button class="icon-btn" data-action="popover-close" data-testid="popover-close" aria-label="Close">✕</button>
+        </header>
+        ${codexEntryHtml(
+          term,
+          `<footer class="popover-foot">
+            <span class="popover-seen">Added to your Codex · ${state.persistent.codexSeen.length} of ${
+              spec.codex.length
+            } terms seen</span>
+            <button class="quiet" data-action="open-codex" data-testid="open-codex">Open the Codex →</button>
+          </footer>`,
+        )}
       </div>`;
   }
 

@@ -175,14 +175,17 @@ function navHtml(state: AppState): string {
   const clues = state.persistent.cluesFound.length;
   const tiles = NAV_TILES.map(
     (tile) => `
-      <button class="nav-tile" data-action="nav" data-target="${tile.id}" aria-disabled="true">
+      <button class="nav-tile" data-action="nav" data-target="${tile.id}" data-testid="nav-${tile.id}">
         ${esc(tile.label)}
         ${tile.id === 'evidence' && clues > 0 ? `<span class="badge">${clues}</span>` : ''}
       </button>`,
   ).join('');
+  const lensUnlocked = state.persistent.lensUnlocked;
   const lens = `
-    <button class="nav-tile nav-lens" data-action="nav" data-target="lens" aria-disabled="true">
-      Lens<span class="seal-dot"></span>
+    <button class="nav-tile ${lensUnlocked ? '' : 'nav-lens'}" data-action="nav" data-target="lens" data-testid="nav-lens" ${
+      lensUnlocked ? '' : 'aria-disabled="true"'
+    }>
+      Lens${lensUnlocked ? '' : '<span class="seal-dot"></span>'}
     </button>`;
   return `<div class="ledger-nav">${tiles}${lens}</div>`;
 }

@@ -1,6 +1,7 @@
 import './styles/tokens.css';
 import './styles/shell.css';
 import './styles/mortality.css';
+import './styles/mystery.css';
 import { createFlow } from './app/flow';
 import { createStore } from './app/store';
 import { hydrateRun } from './engine/serialize';
@@ -56,10 +57,18 @@ async function boot(): Promise<void> {
     selectedTown: null,
     selectedDecree: null,
     sheet: null,
+    boardQuestion: null,
+    codexTerm: null,
+    chronicleId: null,
+    chronicleQuiz: null,
+    earnedQueue: [],
   });
   const flow = createFlow({ store, saves });
   const codex = new Map(spec.codex.map((entry) => [entry.id, entry]));
   const app = createApp({ store, flow, codex });
+  if (import.meta.env.DEV) {
+    (window as unknown as { __tgm?: unknown }).__tgm = { store, saves, spec };
+  }
   store.subscribe(() => app.render());
   app.render();
 }
