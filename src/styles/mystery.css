@@ -993,6 +993,10 @@
   background: var(--surface-raised);
   padding: 5px;
   overflow: hidden;
+  flex: 0 0 auto;
+  align-self: center;
+  width: min(100%, 280px);
+  aspect-ratio: 4 / 3;
 }
 
 .woodcut-img {
